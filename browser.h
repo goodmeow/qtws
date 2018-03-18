@@ -8,10 +8,10 @@ class Browser : public QWebEngineView
 public:
     Browser();
 
-    QWebEngineView *createWindow(QWebEnginePage::WebWindowType);
+    virtual QWebEngineView *createWindow(QWebEnginePage::WebWindowType);
 
 signals:
-    void newWindowOpen(QUrl);
+    void newWindow(QUrl);
 };
 
 #endif // BROWSER_H

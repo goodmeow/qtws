@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QList>
+#include "menuaction.h"
 
 class QtWS
 {
@@ -15,6 +16,8 @@ public:
     QString getHome();
     QString getIconPath();
 
+    QList<MenuAction> getMenu();
+
     QString getConfigName();
 
     bool isSaveSession();
@@ -26,8 +29,9 @@ private:
     QString iconPath;
     bool saveSession;
 
-    void loadData(QString filename);
+    QList<MenuAction> menu;
 
+    void loadData(QString filename);
 };
 
 #endif // QTWS_H

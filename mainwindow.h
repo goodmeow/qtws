@@ -32,6 +32,7 @@ private slots:
   void actionHome();
   void actionBack();
   void actionReload();
+  void actionMenuTrigger(QAction*);
   void ShowContextMenu(const QPoint &pos);
 
   void onUrlChanged(QUrl url);

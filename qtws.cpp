@@ -23,6 +23,10 @@ QString QtWS::getIconPath() {
     return iconPath;
 }
 
+QList<MenuAction> QtWS::getMenu() {
+      return this->menu;
+}
+
 QList<QString> QtWS::getPlugins() {
     return plugins;
 }
@@ -35,10 +39,14 @@ QString QtWS::getName() {
     return name;
 }
 
+
 void QtWS::loadData(QString filename) {
     QFile file;
     file.setFileName(filename);
     file.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!file.exists()) {
+        throw QString("Configuration file ") + filename + QString(" not found");
+    }
     QString content = file.readAll();
     file.close();
     QJsonDocument jsonDocument = QJsonDocument::fromJson(content.toUtf8());
@@ -106,9 +114,37 @@ void QtWS::loadData(QString filename) {
     QJsonValue sessionInJson = jsonObject.value(QString("saveSession"));
     if (!sessionInJson.isBool()) {
         throw QString("Save session is not boolean");
-        return;
     } else {
         this->saveSession = sessionInJson.toBool();
+    }
+
+    QJsonValue menuInJson = jsonObject.value(QString("menu"));
+    if (!menuInJson.isNull()) {
+        this->menu.clear();
+        if (!menuInJson.isArray()) {
+            throw QString("Menu is not an array");
+        } else {
+            QJsonArray menuArray = menuInJson.toArray();
+            for (int i = 0; i < menuArray.size(); i++) {
+                QJsonValue element = menuArray.at(i);
+                if (!element.isObject()) {
+                    throw QString("Menu item is not an object");
+                } else {
+                    QJsonObject menuItem = element.toObject();
+                    QJsonValue menuItemName     = menuItem.value(QString("title"));
+                    QJsonValue menuItemAction   = menuItem.value(QString("action"));
+
+                    if (!menuItemName.isString()) {
+                        throw QString("Menu item does not have a title");
+                    } else if (!menuItemAction.isString()) {
+                        throw QString("Menu item does not have an action");
+                    } else {
+                        MenuAction action(menuItemName.toString(), menuItemAction.toString());
+                        this->menu.append(action);
+                    }
+                }
+            }
+        }
     }
 }
 

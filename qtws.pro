@@ -20,11 +20,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
         mainwindow.cpp \
     qtws.cpp \
-    browser.cpp
+    browser.cpp \
+    menuaction.cpp
 
 HEADERS  += mainwindow.h \
     qtws.h \
-    browser.h
+    browser.h \
+    menuaction.h
 
 FORMS    += mainwindow.ui
 

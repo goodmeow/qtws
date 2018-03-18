@@ -6,7 +6,7 @@ Browser::Browser() {
 }
 
 QWebEngineView *Browser::createWindow(QWebEnginePage::WebWindowType type) {
-//    emit newWindowOpen(type.url());
+    //emit newWindow(type.url());
     return NULL;
 }
 

@@ -10,7 +10,10 @@
 #include <QIcon>
 #include <QBackingStore>
 #include <QDesktopServices>
+#include <QWebEngineHistory>
+#include <QFileDialog>
 #include "browser.h"
+#include "menuaction.h"
 
 MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -31,25 +34,26 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
         webview->setUrl(QUrl(appSettings->value("site").toString()));
     }
     webview->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
+    webview->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
 
-    // key short cuts
-    QShortcut* keyF11 = new QShortcut(this); // Initialize the object
-    keyF11->setKey(Qt::Key_F11);  // Set the key code
+    QShortcut* keyF11 = new QShortcut(this);
+    keyF11->setKey(Qt::Key_F11);
     connect(keyF11, SIGNAL(activated()), this, SLOT(actionFullscreen()));
 
-    QShortcut* keyCtrlQ = new QShortcut(this);         // Initialize the object
-    keyCtrlQ->setKey(Qt::CTRL + Qt::Key_Q); // Set the key code
+    QShortcut* keyCtrlQ = new QShortcut(this);
+    keyCtrlQ->setKey(Qt::CTRL + Qt::Key_Q);
     connect(keyCtrlQ, SIGNAL(activated()), this, SLOT(actionQuit()));
 
-    QShortcut* keyCtrlH = new QShortcut(this);         // Initialize the object
-    keyCtrlH->setKey(Qt::CTRL + Qt::Key_H); // Set the key code
+    QShortcut* keyCtrlH = new QShortcut(this);
+    keyCtrlH->setKey(Qt::CTRL + Qt::Key_H);
     connect(keyCtrlH, SIGNAL(activated()), this, SLOT(actionHome()));
 
-    QShortcut* keyCtrlR = new QShortcut(this);         // Initialize the object
-    keyCtrlR->setKey(Qt::CTRL + Qt::Key_R); // Set the key code
-    QShortcut* keyF5 = new QShortcut(this);         // Initialize the object
-    keyF5->setKey(Qt::Key_F5); // Set the key code
-    connect(keyCtrlH, SIGNAL(activated()), this, SLOT(actionReload()));
+    QShortcut* keyCtrlR = new QShortcut(this);
+    keyCtrlR->setKey(Qt::CTRL + Qt::Key_R);
+    connect(keyCtrlR, SIGNAL(activated()), this, SLOT(actionReload()));
+
+    QShortcut* keyF5 = new QShortcut(this);
+    keyF5->setKey(Qt::Key_F5);
     connect(keyF5, SIGNAL(activated()), this, SLOT(actionReload()));
 
     QShortcut* keyAltLeft = new QShortcut(this);         // Initialize the object
@@ -63,8 +67,8 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     webview->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
     connect(webview, SIGNAL(urlChanged(QUrl)), this, SLOT(onUrlChanged(QUrl)));
-    connect(webview, SIGNAL(Browser::newWindowOpen(QUrl)), this, SLOT(MainWindow::newWindowOpen(QUrl)));
-    connect(webview, SIGNAL(iconChanged(QIcon)), this, SLOT(MainWindow::changeIcon(QIcon)));
+    connect(webview, SIGNAL(newWindow(QUrl)), this, SLOT(newWindowOpen(QUrl)));
+    connect(webview, SIGNAL(iconChanged(QIcon)), this, SLOT(changeIcon(QIcon)));
 
     connect(webview->page(), &QWebEnginePage::fullScreenRequested, this, &MainWindow::fullScreenRequested);
 
@@ -126,29 +130,33 @@ void MainWindow::ShowContextMenu(const QPoint &pos) // this is a slot
     QPoint globalPos = webview->mapToGlobal(pos);
 
     QMenu myMenu;
-//    if (this->webview->backingStore()->size() > 0) {
-    myMenu.addAction("Back");
-//    } else {
-//        myMenu.addAction("Back");
-//        myMenu.
-//    }
-    myMenu.addAction("Home");
-    myMenu.addAction("Reload");
-    myMenu.addSeparator();
-    myMenu.addAction("Quit");
 
-    QAction *selectedItem = myMenu.exec(globalPos);
-    if (selectedItem == NULL) {
-    return;
-    } else if (selectedItem->text() == "Reload") {
-        actionReload();
-    } else if (selectedItem->text() == "Back") {
-        actionBack();
-    } else if (selectedItem->text() == "Home") {
-        actionHome();
-    } else if (selectedItem->text() == "Quit") {
-        actionQuit();
+    myMenu.addAction(QString("Back"), this, &MainWindow::actionBack);
+
+    if (!webview->page()->history()->canGoBack()) {
+        myMenu.actions().at(0)->setEnabled(false);
     }
+
+    myMenu.addAction(QString("Reload"), this, &MainWindow::actionReload);
+    myMenu.addAction(QString("Home"), this, &MainWindow::actionHome);
+
+    if (configHandler->getMenu().size() > 0) {
+        myMenu.addSeparator();
+
+        for (int i = 0; i < configHandler->getMenu().size(); i++) {
+            MenuAction action = configHandler->getMenu().at(i);
+            QAction* menuAction = myMenu.addAction(action.getTitle());
+            menuAction->setData(action.getUrl());
+        }
+    }
+
+    connect(&myMenu, SIGNAL(triggered(QAction*)), this, SLOT(actionMenuTrigger(QAction*)));
+
+    //TODO insert all the custom actions here
+    myMenu.addSeparator();
+    myMenu.addAction(QString("Quit"), this, &MainWindow::actionQuit);
+
+    myMenu.exec(globalPos);
 }
 
 
@@ -165,6 +173,8 @@ void MainWindow::actionFullscreen() {
 }
 
 void MainWindow::onUrlChanged(QUrl url) {
+    //QString fileChosen = QFileDialog::getSaveFileName(this);
+
     qWarning() << url.toString().toLatin1();
     for (int i = 0; i < this->configHandler->getWScope().size(); i++) {
         QString scopeUrl = this->configHandler->getWScope().at(i);
@@ -202,7 +212,13 @@ void MainWindow::actionHome() {
 }
 
 void MainWindow::actionReload() {
-    this->webview->setUrl(this->configHandler->getHome());
+    this->webview->reload();
+}
+
+void MainWindow::actionMenuTrigger(QAction* action) {
+    if (!action->data().isNull()) {
+        this->webview->setUrl(action->data().toUrl());
+    }
 }
 
 void MainWindow::newWindowOpen(QUrl url) {
