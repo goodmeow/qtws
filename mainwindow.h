@@ -10,6 +10,9 @@
 #include <QShortcut>
 #include <QWebEngineFullScreenRequest>
 #include <QWebEngineView>
+#include "qtws.h"
+#include "browser.h"
+
 namespace Ui {
 class MainWindow;
 }
@@ -18,15 +21,22 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = 0);
+  explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL);
   ~MainWindow();
   // QAction amazon();
 
 private slots:
   // slots for handlers of hotkeys
-  void slotShortcutF11();
-  void slotShortcutCtrlQ();
+  void actionFullscreen();
+  void actionQuit();
+  void actionHome();
+  void actionBack();
+  void actionReload();
   void ShowContextMenu(const QPoint &pos);
+
+  void onUrlChanged(QUrl url);
+  void newWindowOpen(QUrl url);
+  void changeIcon(QIcon icon);
 
 protected:
   // save window geometry
@@ -34,10 +44,17 @@ protected:
 
 private:
   Ui::MainWindow *ui;
-  QWebEngineView *webview;
-  QShortcut *keyF11;   // Entity of F11 hotkey
-  QShortcut *keyCtrlQ; // Entity of Ctrl + D hotkeys
+  Browser *webview;
+//  QShortcut *keyF11;   // Entity of F11 hotkey
+//  QShortcut *keyCtrlQ; // Entity of Ctrl + Q hotkey
+//  QShortcut *keyAltLeft; // Entity of Back
+//  QShortcut *keyCtrlH; // Entity of Ctrl + H hotkey
+//  QShortcut *keyF5; // Entity of F5 hotkey
+//  QShortcut *keyCtrlR; // Entity of Ctrl + R hotkey
   QSettings *appSettings;
+
+  QtWS *configHandler;
+
   void fullScreenRequested(QWebEngineFullScreenRequest request);
   void writeSettings();
   void readSettings();

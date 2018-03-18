@@ -7,80 +7,89 @@
 #include <QWebEngineSettings>
 #include <QWebEngineView>
 #include <QWidget>
-MainWindow::MainWindow(QWidget *parent)
+#include <QIcon>
+#include <QBackingStore>
+#include <QDesktopServices>
+#include "browser.h"
+
+MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 
 {
-  QWebEngineSettings::globalSettings()->setAttribute(
-      QWebEngineSettings::PluginsEnabled, true);
-  appSettings = new QSettings("Qtwebflix", "Save State", this);
-  ui->setupUi(this);
-  readSettings();
-  webview = new QWebEngineView;
-  ui->horizontalLayout->addWidget(webview);
-  if (appSettings->value("site").toString() == "") {
-    webview->setUrl(QUrl(QStringLiteral("http://netflix.com")));
-  } else {
-    webview->setUrl(QUrl(appSettings->value("site").toString()));
-  }
-  webview->settings()->setAttribute(
-      QWebEngineSettings::FullScreenSupportEnabled, true);
+    this->configHandler = configHandler;
 
-  // connect handler for fullscreen press on video
-  connect(webview->page(), &QWebEnginePage::fullScreenRequested, this,
-          &MainWindow::fullScreenRequested);
+    QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
+    appSettings = new QSettings(configHandler->getConfigName(), "Save State", this);
+    ui->setupUi(this);
 
-  // key short cuts
-  keyF11 = new QShortcut(this); // Initialize the object
-  keyF11->setKey(Qt::Key_F11);  // Set the key code
-  // connect handler to keypress
-  connect(keyF11, SIGNAL(activated()), this, SLOT(slotShortcutF11()));
-  keyCtrlQ = new QShortcut(this);         // Initialize the object
-  keyCtrlQ->setKey(Qt::CTRL + Qt::Key_Q); // Set the key code
-  // connect handler to keypress
-  connect(keyCtrlQ, SIGNAL(activated()), this, SLOT(slotShortcutCtrlQ()));
+    readSettings();
+    webview = new Browser;
+    ui->horizontalLayout->addWidget(webview);
+    if (appSettings->value("site").toString() == "") {
+        webview->setUrl(QUrl(configHandler->getHome()));
+    } else {
+        webview->setUrl(QUrl(appSettings->value("site").toString()));
+    }
+    webview->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
 
-  // Window size settings
-  QSettings settings;
-  restoreState(settings.value("mainWindowState").toByteArray());
+    // key short cuts
+    QShortcut* keyF11 = new QShortcut(this); // Initialize the object
+    keyF11->setKey(Qt::Key_F11);  // Set the key code
+    connect(keyF11, SIGNAL(activated()), this, SLOT(actionFullscreen()));
 
-  webview->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this,
-          SLOT(ShowContextMenu(const QPoint &)));
+    QShortcut* keyCtrlQ = new QShortcut(this);         // Initialize the object
+    keyCtrlQ->setKey(Qt::CTRL + Qt::Key_Q); // Set the key code
+    connect(keyCtrlQ, SIGNAL(activated()), this, SLOT(actionQuit()));
+
+    QShortcut* keyCtrlH = new QShortcut(this);         // Initialize the object
+    keyCtrlH->setKey(Qt::CTRL + Qt::Key_H); // Set the key code
+    connect(keyCtrlH, SIGNAL(activated()), this, SLOT(actionHome()));
+
+    QShortcut* keyCtrlR = new QShortcut(this);         // Initialize the object
+    keyCtrlR->setKey(Qt::CTRL + Qt::Key_R); // Set the key code
+    QShortcut* keyF5 = new QShortcut(this);         // Initialize the object
+    keyF5->setKey(Qt::Key_F5); // Set the key code
+    connect(keyCtrlH, SIGNAL(activated()), this, SLOT(actionReload()));
+    connect(keyF5, SIGNAL(activated()), this, SLOT(actionReload()));
+
+    QShortcut* keyAltLeft = new QShortcut(this);         // Initialize the object
+    keyAltLeft->setKey(Qt::ALT + Qt::Key_Left); // Set the key code
+    connect(keyAltLeft, SIGNAL(activated()), this, SLOT(actionBack()));
+
+    // Window size settings
+    QSettings settings;
+    restoreState(settings.value("mainWindowState").toByteArray());
+
+    webview->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+    connect(webview, SIGNAL(urlChanged(QUrl)), this, SLOT(onUrlChanged(QUrl)));
+    connect(webview, SIGNAL(Browser::newWindowOpen(QUrl)), this, SLOT(MainWindow::newWindowOpen(QUrl)));
+    connect(webview, SIGNAL(iconChanged(QIcon)), this, SLOT(MainWindow::changeIcon(QIcon)));
+
+    connect(webview->page(), &QWebEnginePage::fullScreenRequested, this, &MainWindow::fullScreenRequested);
+
+    this->window()->setWindowTitle(this->configHandler->getName());
+    this->setWindowIcon(QIcon(this->configHandler->getIconPath()));
+
 }
 
 MainWindow::~MainWindow() { delete ui; }
 
-// Slot handler of F11
-void MainWindow::slotShortcutF11() {
-  /* This handler will make switching applications in full screen mode
-   * and back to normal window mode
-   * */
-  if (this->isFullScreen()) {
-    this->showNormal();
-  } else {
-    this->showFullScreen();
-  }
-}
-
-// Slot handler for Ctrl + Q
-void MainWindow::slotShortcutCtrlQ() {
-  writeSettings();
-  QApplication::quit();
-}
-
 void MainWindow::closeEvent(QCloseEvent *) {
-  // This will be called whenever this window is closed.
-  writeSettings();
+    // This will be called whenever this window is closed.
+    writeSettings();
 }
 
 void MainWindow::writeSettings() {
-  // Write the values to disk in categories.
-  appSettings->setValue("state/mainWindowState", saveState());
-  appSettings->setValue("geometry/mainWindowGeometry", saveGeometry());
-  QString site = webview->url().toString();
-  appSettings->setValue("site", site);
-  qDebug() << " write settings:" << site;
+    if (!this->configHandler->isSaveSession())
+        return;
+
+    // Write the values to disk in categories.
+    appSettings->setValue("state/mainWindowState", saveState());
+    appSettings->setValue("geometry/mainWindowGeometry", saveGeometry());
+    QString site = webview->url().toString();
+    appSettings->setValue("site", site);
+    qDebug() << " write settings:" << site;
 }
 
 void MainWindow::restore() {
@@ -95,7 +104,10 @@ void MainWindow::restore() {
   restoreGeometry(geometryData);
 }
 
-void MainWindow::readSettings() { restore(); }
+void MainWindow::readSettings() {
+    if (this->configHandler->isSaveSession())
+        restore();
+}
 
 void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {
 
@@ -111,40 +123,112 @@ void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {
 
 void MainWindow::ShowContextMenu(const QPoint &pos) // this is a slot
 {
-  QPoint globalPos = webview->mapToGlobal(pos);
+    QPoint globalPos = webview->mapToGlobal(pos);
 
-  QMenu myMenu;
-  myMenu.addAction("Amazon Prime");
-  myMenu.addAction("Netflix");
-  myMenu.addAction("Hulu");
-  myMenu.addAction("CrunchyRoll");
-  myMenu.addAction("HBO");
+    QMenu myMenu;
+//    if (this->webview->backingStore()->size() > 0) {
+    myMenu.addAction("Back");
+//    } else {
+//        myMenu.addAction("Back");
+//        myMenu.
+//    }
+    myMenu.addAction("Home");
+    myMenu.addAction("Reload");
+    myMenu.addSeparator();
+    myMenu.addAction("Quit");
 
-  QAction *selectedItem = myMenu.exec(globalPos);
-  if (selectedItem == NULL) {
+    QAction *selectedItem = myMenu.exec(globalPos);
+    if (selectedItem == NULL) {
     return;
-  } else if (selectedItem->text() == "Amazon Prime") {
-    webview->setUrl(QUrl(QStringLiteral(
-        "https://www.amazon.com/Amazon-Video/b/?&node=2858778011")));
-  }
+    } else if (selectedItem->text() == "Reload") {
+        actionReload();
+    } else if (selectedItem->text() == "Back") {
+        actionBack();
+    } else if (selectedItem->text() == "Home") {
+        actionHome();
+    } else if (selectedItem->text() == "Quit") {
+        actionQuit();
+    }
+}
 
-  else if (selectedItem->text() == "Hulu") {
-    webview->setUrl(QUrl(QStringLiteral("https://hulu.com")));
-  }
 
-  else if (selectedItem->text() == "CrunchyRoll") {
-    webview->setUrl(QUrl(QStringLiteral("https://crunchyroll.com")));
-  }
+// Slot handler of F11
+void MainWindow::actionFullscreen() {
+    /* This handler will make switching applications in full screen mode
+    * and back to normal window mode
+    * */
+    if (this->isFullScreen()) {
+        this->showNormal();
+    } else {
+        this->showFullScreen();
+    }
+}
 
-  else if (selectedItem->text() == "HBO") {
-    webview->setUrl(QUrl(QStringLiteral("https://hbo.com")));
-  }
+void MainWindow::onUrlChanged(QUrl url) {
+    qWarning() << url.toString().toLatin1();
+    for (int i = 0; i < this->configHandler->getWScope().size(); i++) {
+        QString scopeUrl = this->configHandler->getWScope().at(i);
+        QUrl allowedScope = QUrl(scopeUrl);
 
-  else if (selectedItem->text() == "Netflix") {
-    webview->setUrl(QUrl(QStringLiteral("https://netflix.com")));
-  }
+        if (url.matches(allowedScope,
+                        QUrl::RemovePassword |
+                        QUrl::RemoveFilename |
+                        QUrl::RemovePath |
+                        QUrl::RemoveQuery |
+                        QUrl::RemoveUserInfo |
+                        QUrl::RemoveFragment |
+                        QUrl::RemoveAuthority |
+                        QUrl::RemoveScheme))
+            return;
+    }
 
-  else {
-    // nothing was chosen
-  }
+    QDesktopServices::openUrl(url);
+    this->webview->stop();
+}
+
+// Slot handler for Ctrl + Q
+void MainWindow::actionQuit() {
+    writeSettings();
+    QApplication::quit();
+}
+
+
+void MainWindow::actionBack() {
+    this->webview->back();
+}
+
+void MainWindow::actionHome() {
+    this->webview->setUrl(this->configHandler->getHome());
+}
+
+void MainWindow::actionReload() {
+    this->webview->setUrl(this->configHandler->getHome());
+}
+
+void MainWindow::newWindowOpen(QUrl url) {
+    qWarning() << url.toString().toLatin1();
+    for (int i = 0; i < this->configHandler->getWScope().size(); i++) {
+        QString scopeUrl = this->configHandler->getWScope().at(i);
+        QUrl allowedScope = QUrl(scopeUrl);
+
+        if (url.matches(allowedScope,
+                        QUrl::RemovePassword |
+                        QUrl::RemoveFilename |
+                        QUrl::RemovePath |
+                        QUrl::RemoveQuery |
+                        QUrl::RemoveUserInfo |
+                        QUrl::RemoveFragment |
+                        QUrl::RemoveAuthority |
+                        QUrl::RemoveScheme)) {
+            this->webview->setUrl(url);
+            return;
+        }
+    }
+
+    QDesktopServices::openUrl(url);
+    this->webview->stop();
+}
+
+void MainWindow::changeIcon(QIcon icon) {
+//    this->setWindowIcon(icon);
 }

@@ -4,11 +4,29 @@
 #include <QWebEngineSettings>
 #include <QWebEngineView>
 #include <iostream>
-int main(int argc, char *argv[]) {
-  QApplication app(argc, argv);
-  //app.setWindowIcon(QIcon(QLatin1String("netflix-desktop")));
-  MainWindow w;
+#include <QIcon>
+#include "qtws.h"
 
-  w.show();
-  return app.exec();
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    //app.setWindowIcon(QIcon(QLatin1String("netflix-desktop")));
+
+    if (argc < 2) {
+        qWarning() << "Specify the configuration file";
+        return -1;
+    }
+
+    try {
+        QtWS *configHandler = new QtWS(argv[1]);
+
+        app.setWindowIcon(QIcon(configHandler->getIconPath()));
+        MainWindow* w = new MainWindow(NULL, configHandler);
+        w->show();
+    } catch (QString str) {
+        std::cout << str.toStdString();
+//        qWarning("Error: " + str.toLatin1() + ".");
+        return -1;
+    }
+
+    return app.exec();
 }
