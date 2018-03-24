@@ -8,8 +8,8 @@
 using namespace std;
 
 QtWS::QtWS(QString filename) {
-    this->loadData(filename);
     this->menuDisabled = false;
+    this->loadData(filename);
 }
 
 QString QtWS::getWScope() {

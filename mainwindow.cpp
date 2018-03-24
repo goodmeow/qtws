@@ -64,19 +64,20 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     QSettings settings;
     restoreState(settings.value("mainWindowState").toByteArray());
 
-    webview->setContextMenuPolicy(Qt::CustomContextMenu);
-    if (!configHandler->isMenuDisabled())
+    if (this->configHandler->isMenuDisabled()) {
+        webview->setContextMenuPolicy(Qt::NoContextMenu);
+    } else {
+        webview->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+    }
 
     connect(webview, SIGNAL(urlChanged(QUrl)), this, SLOT(onUrlChanged(QUrl)));
-    connect(webview, SIGNAL(newWindow(QUrl)), this, SLOT(newWindowOpen(QUrl)));
     connect(webview, SIGNAL(iconChanged(QIcon)), this, SLOT(changeIcon(QIcon)));
 
     connect(webview->page(), &QWebEnginePage::fullScreenRequested, this, &MainWindow::fullScreenRequested);
 
     this->window()->setWindowTitle(this->configHandler->getName());
     this->setWindowIcon(QIcon(this->configHandler->getIconPath()));
-
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -116,15 +117,19 @@ void MainWindow::readSettings() {
 }
 
 void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {
+    if (request.toggleOn()) {
+        qWarning() << "FS ON";
+        maximized = this->isMaximized();
 
-  // fullscreen on video players
+        this->showFullScreen();
+    } else {
+        qWarning() << "FS OFF";
+        this->showNormal();
 
-  if (request.toggleOn()) {
-    this->showFullScreen();
-  } else {
-    this->showNormal();
-  }
-  request.accept();
+        if (maximized)
+            this->showMaximized();
+    }
+    request.accept();
 }
 
 void MainWindow::ShowContextMenu(const QPoint &pos) {
@@ -167,17 +172,21 @@ void MainWindow::actionFullscreen() {
     /* This handler will make switching applications in full screen mode
     * and back to normal window mode
     * */
-    if (this->isFullScreen()) {
-        this->showNormal();
-    } else {
+    if (!this->isFullScreen()) {
+        maximized = this->isMaximized();
+
         this->showFullScreen();
+    } else {
+        this->showNormal();
+
+        if (maximized)
+            this->showMaximized();
     }
 }
 
 void MainWindow::onUrlChanged(QUrl url) {
     //QString fileChosen = QFileDialog::getSaveFileName(this);
 
-    qWarning() << url.toString().toLatin1();
     for (int i = 0; i < this->configHandler->getWScope().size(); i++) {
         QString scopeUrl = this->configHandler->getWScope().at(i);
         QUrl allowedScope = QUrl(scopeUrl);

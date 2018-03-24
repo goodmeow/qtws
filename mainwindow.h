@@ -46,6 +46,7 @@ protected:
 private:
   Ui::MainWindow *ui;
   Browser *webview;
+  bool maximized;
 //  QShortcut *keyF11;   // Entity of F11 hotkey
 //  QShortcut *keyCtrlQ; // Entity of Ctrl + Q hotkey
 //  QShortcut *keyAltLeft; // Entity of Back
