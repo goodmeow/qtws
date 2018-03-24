@@ -18,7 +18,7 @@ Most others must compile qtwebengine with proprietary codecs.
 
 Read this <html>http://blog.qt.io/blog/2016/06/03/netflix-qt-webengine-5-7/</html>
 
-## Installation:
+## Installation
 - Install qt5
 - Compile qtwebengine according to the link above
 - Dowload the source.
