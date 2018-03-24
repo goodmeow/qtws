@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     restoreState(settings.value("mainWindowState").toByteArray());
 
     webview->setContextMenuPolicy(Qt::CustomContextMenu);
-    if (!configHandler->menuDisabled)
+    if (!configHandler->isMenuDisabled())
         connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
 
     connect(webview, SIGNAL(urlChanged(QUrl)), this, SLOT(onUrlChanged(QUrl)));

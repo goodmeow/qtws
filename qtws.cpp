@@ -39,6 +39,10 @@ QString QtWS::getName() {
     return name;
 }
 
+bool QtWS::isMenuDisabled() {
+    return isMenuDisabled();
+}
+
 
 void QtWS::loadData(QString filename) {
     QFile file;
