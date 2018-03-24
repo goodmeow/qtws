@@ -76,7 +76,7 @@ The fields of the json are the following (required in italics):
 - *name*: name of the webapp (string);
 - *home*: URL of the homepage of the webapp (string);
 - *icon*: local path of the icon that the application should show (string);
-- *saveSession*: if the session has to be saved when the window is closed (e.g., the last page visited) (string);
+- *saveSession*: if the session has to be saved when the window is closed (e.g., the last page visited) (boolean);
 - *plugins*: list of the plugins needed (ignored at the moment) (array of strings);
 - *scope*: domains that are allowed in the webapps. URLs belonging to other domains will be openend with the browser (array of strings);
 - menu: additional entries in the contextual menu (array of objects with a title, indicating the name of the menu entry, and an action, indicating the URL that will be set if the entry is selected).
