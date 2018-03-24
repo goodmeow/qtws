@@ -40,7 +40,7 @@ QString QtWS::getName() {
 }
 
 bool QtWS::isMenuDisabled() {
-    return isMenuDisabled();
+    return this->menuDisabled;
 }
 
 
