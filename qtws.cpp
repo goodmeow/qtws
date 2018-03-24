@@ -9,6 +9,7 @@ using namespace std;
 
 QtWS::QtWS(QString filename) {
     this->loadData(filename);
+    this->menuDisabled = false;
 }
 
 QString QtWS::getWScope() {
