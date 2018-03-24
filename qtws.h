@@ -21,6 +21,8 @@ public:
     QString getConfigName();
 
     bool isSaveSession();
+    bool isMenuDisabled();
+
 private:
     QString name;
     QString scope;
@@ -28,6 +30,7 @@ private:
     QString home;
     QString iconPath;
     bool saveSession;
+    bool menuDisabled;
 
     QList<MenuAction> menu;
 

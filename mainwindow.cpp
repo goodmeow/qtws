@@ -65,7 +65,9 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     restoreState(settings.value("mainWindowState").toByteArray());
 
     webview->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+    if (!configHandler->menuDisabled)
+        connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+
     connect(webview, SIGNAL(urlChanged(QUrl)), this, SLOT(onUrlChanged(QUrl)));
     connect(webview, SIGNAL(newWindow(QUrl)), this, SLOT(newWindowOpen(QUrl)));
     connect(webview, SIGNAL(iconChanged(QIcon)), this, SLOT(changeIcon(QIcon)));
@@ -125,8 +127,8 @@ void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {
   request.accept();
 }
 
-void MainWindow::ShowContextMenu(const QPoint &pos) // this is a slot
-{
+void MainWindow::ShowContextMenu(const QPoint &pos) {
+
     QPoint globalPos = webview->mapToGlobal(pos);
 
     QMenu myMenu;

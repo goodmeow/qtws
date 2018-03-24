@@ -118,8 +118,17 @@ void QtWS::loadData(QString filename) {
         this->saveSession = sessionInJson.toBool();
     }
 
+    QJsonValue menuDisabledJson = jsonObject.value(QString("menuDisabled"));
+    if (!menuDisabledJson.isUndefined()) {
+        if (!menuDisabledJson.isBool()) {
+            throw QString("Menu disabling is not boolean");
+        } else {
+            this->menuDisabled = menuDisabledJson.toBool();
+        }
+    }
+
     QJsonValue menuInJson = jsonObject.value(QString("menu"));
-    if (!menuInJson.isNull()) {
+    if (!menuInJson.isUndefined()) {
         this->menu.clear();
         if (!menuInJson.isArray()) {
             throw QString("Menu is not an array");
