@@ -8,7 +8,9 @@
 using namespace std;
 
 QtWS::QtWS(QString filename) {
-    this->menuDisabled = false;
+    this->multimedia    = false;
+    this->menuDisabled  = false;
+
     this->loadData(filename);
 }
 
@@ -42,6 +44,10 @@ QString QtWS::getName() {
 
 bool QtWS::isMenuDisabled() {
     return this->menuDisabled;
+}
+
+bool QtWS::hasMultimedia() {
+    return this->multimedia;
 }
 
 
@@ -129,6 +135,15 @@ void QtWS::loadData(QString filename) {
             throw QString("Menu disabling is not boolean");
         } else {
             this->menuDisabled = menuDisabledJson.toBool();
+        }
+    }
+
+    QJsonValue multimediaJson = jsonObject.value(QString("multimedia"));
+    if (!multimediaJson.isUndefined()) {
+        if (!multimediaJson.isBool()) {
+            throw QString("Multimedia is not boolean");
+        } else {
+            this->multimedia = multimediaJson.toBool();
         }
     }
 

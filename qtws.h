@@ -22,6 +22,7 @@ public:
 
     bool isSaveSession();
     bool isMenuDisabled();
+    bool hasMultimedia();
 
 private:
     QString name;
@@ -31,6 +32,7 @@ private:
     QString iconPath;
     bool saveSession;
     bool menuDisabled;
+    bool multimedia;
 
     QList<MenuAction> menu;
 

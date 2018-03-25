@@ -56,6 +56,16 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     keyF5->setKey(Qt::Key_F5);
     connect(keyF5, SIGNAL(activated()), this, SLOT(actionReload()));
 
+    if (configHandler->hasMultimedia()) {
+        QShortcut* keyCtrlM = new QShortcut(this);
+        keyCtrlM->setKey(Qt::CTRL + Qt::Key_M);
+        connect(keyCtrlM, SIGNAL(activated()), this, SLOT(actionToggleMute()));
+
+        QShortcut* keyCtrlP = new QShortcut(this);
+        keyCtrlP->setKey(Qt::CTRL + Qt::Key_M);
+        connect(keyCtrlP, SIGNAL(activated()), this, SLOT(actionTogglePlay()));
+    }
+
     QShortcut* keyAltLeft = new QShortcut(this);         // Initialize the object
     keyAltLeft->setKey(Qt::ALT + Qt::Key_Left); // Set the key code
     connect(keyAltLeft, SIGNAL(activated()), this, SLOT(actionBack()));
@@ -118,16 +128,15 @@ void MainWindow::readSettings() {
 
 void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {
     if (request.toggleOn()) {
-        qWarning() << "FS ON";
         maximized = this->isMaximized();
 
         this->showFullScreen();
     } else {
-        qWarning() << "FS OFF";
-        this->showNormal();
+        this->webview->triggerPageAction(QWebEnginePage::ExitFullScreen);
+//        this->showNormal();
 
-        if (maximized)
-            this->showMaximized();
+//        if (maximized)
+//            this->showMaximized();
     }
     request.accept();
 }
@@ -136,34 +145,44 @@ void MainWindow::ShowContextMenu(const QPoint &pos) {
 
     QPoint globalPos = webview->mapToGlobal(pos);
 
-    QMenu myMenu;
+    QMenu *myMenu = new QMenu();
 
-    myMenu.addAction(QString("Back"), this, &MainWindow::actionBack);
+    myMenu->addAction(QString("Back"), this, &MainWindow::actionBack);
 
     if (!webview->page()->history()->canGoBack()) {
-        myMenu.actions().at(0)->setEnabled(false);
+        myMenu->actions().at(0)->setEnabled(false);
     }
 
-    myMenu.addAction(QString("Reload"), this, &MainWindow::actionReload);
-    myMenu.addAction(QString("Home"), this, &MainWindow::actionHome);
+    myMenu->addAction(QString("Reload"), this, &MainWindow::actionReload);
+    myMenu->addAction(QString("Home"), this, &MainWindow::actionHome);
+
+    if (configHandler->hasMultimedia()) {
+        myMenu->addSeparator();
+        if (webview->page()->isAudioMuted())
+            myMenu->addAction(QString("Unmute"), this, &MainWindow::actionToggleMute);
+        else
+            myMenu->addAction(QString("Mute"), this, &MainWindow::actionToggleMute);
+
+        myMenu->addAction(QString("Play/Pause"), this, &MainWindow::actionTogglePlay);
+    }
 
     if (configHandler->getMenu().size() > 0) {
-        myMenu.addSeparator();
+        myMenu->addSeparator();
 
         for (int i = 0; i < configHandler->getMenu().size(); i++) {
             MenuAction action = configHandler->getMenu().at(i);
-            QAction* menuAction = myMenu.addAction(action.getTitle());
+            QAction* menuAction = myMenu->addAction(action.getTitle());
             menuAction->setData(action.getUrl());
         }
     }
 
-    connect(&myMenu, SIGNAL(triggered(QAction*)), this, SLOT(actionMenuTrigger(QAction*)));
+    connect(myMenu, SIGNAL(triggered(QAction*)), this, SLOT(actionMenuTrigger(QAction*)));
 
     //TODO insert all the custom actions here
-    myMenu.addSeparator();
-    myMenu.addAction(QString("Quit"), this, &MainWindow::actionQuit);
+    myMenu->addSeparator();
+    myMenu->addAction(QString("Quit"), this, &MainWindow::actionQuit);
 
-    myMenu.exec(globalPos);
+    myMenu->popup(globalPos);
 }
 
 
@@ -177,6 +196,7 @@ void MainWindow::actionFullscreen() {
 
         this->showFullScreen();
     } else {
+//        this->webview->triggerPageAction(QWebEnginePage::ExitFullScreen);
         this->showNormal();
 
         if (maximized)
@@ -224,6 +244,14 @@ void MainWindow::actionHome() {
 
 void MainWindow::actionReload() {
     this->webview->reload();
+}
+
+void MainWindow::actionToggleMute() {
+    webview->page()->setAudioMuted(!webview->page()->isAudioMuted());
+}
+
+void MainWindow::actionTogglePlay() {
+    webview->page()->triggerAction(QWebEnginePage::ToggleMediaPlayPause);
 }
 
 void MainWindow::actionMenuTrigger(QAction* action) {

@@ -32,6 +32,10 @@ private slots:
   void actionHome();
   void actionBack();
   void actionReload();
+
+  void actionToggleMute();
+  void actionTogglePlay();
+
   void actionMenuTrigger(QAction*);
   void ShowContextMenu(const QPoint &pos);
 
