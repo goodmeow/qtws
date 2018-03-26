@@ -1,7 +1,7 @@
 # qtws
 A qt webengine program to easily create very basic and lightweight desktop webapps.
 
-It will be available in the AUR soon.
+Available in the [AUR](https://aur.archlinux.org/packages/qtws-base/)!
 ## Requirements
 - qt5
 - qtwebegine (with proprietary codecs)
