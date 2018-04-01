@@ -5,8 +5,7 @@
 #include <QList>
 #include "menuaction.h"
 
-class QtWS
-{
+class QtWS {
 public:
     QtWS(QString filename);
 

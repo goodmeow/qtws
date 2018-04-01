@@ -12,21 +12,29 @@
 #include <QDesktopServices>
 #include <QWebEngineHistory>
 #include <QFileDialog>
-#include "browser.h"
 #include "menuaction.h"
+#include "qtwswebpage.h"
+
+#ifdef DBUS
+#include <QtDBus/QDBusConnection>
+#include <QtDBus/QtDBus>
+#endif
 
 MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 
-{
+{    
     this->configHandler = configHandler;
+
+    this->mpris = new Mpris(this, configHandler->getName());
 
     QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
     appSettings = new QSettings(configHandler->getConfigName(), "Save State", this);
     ui->setupUi(this);
 
     readSettings();
-    webview = new Browser;
+    webview = new QWebEngineView;
+    webview->setPage(new QtWSWebPage);
     ui->horizontalLayout->addWidget(webview);
     if (appSettings->value("site").toString() == "") {
         webview->setUrl(QUrl(configHandler->getHome()));
@@ -88,9 +96,62 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
 
     this->window()->setWindowTitle(this->configHandler->getName());
     this->setWindowIcon(QIcon(this->configHandler->getIconPath()));
+
+#ifdef DBUS
+    if (configHandler->hasMultimedia()) {
+        bool ret;
+
+        const QString serviceName = tr("it.qtws.services.") + configHandler->getName();
+        const QString interfaceName = tr("it.qtws.") + configHandler->getName();
+
+        QDBusConnection::sessionBus().registerService(serviceName);
+        QDBusConnection::sessionBus().registerObject(tr("/"), this);
+
+        ret = QDBusConnection::sessionBus().connect(
+                    QString(),
+                    QString(),
+                    interfaceName,
+                    tr("Play"),
+                    tr(""),
+                    this, //receiver
+                    SLOT(dServicePlay()));
+        if (!ret)
+            qWarning() << tr("Unregistered Play");
+
+        ret = QDBusConnection::sessionBus().connect(
+                    QString(),
+                    QString(),
+                    interfaceName,
+                    tr("Pause"),
+                    tr(""),
+                    this, //receiver
+                    SLOT(dServicePause()));
+        if (!ret)
+            qWarning() << tr("Unregistered Play");
+
+        ret = QDBusConnection::sessionBus().connect(
+                    QString(),
+                    QString(),
+                    interfaceName,
+                    tr("Stop"),
+                    tr(""),
+                    this, //receiver
+                    SLOT(dServiceStop()));
+        if (!ret)
+            qWarning() << tr("Unregistered Play");
+    }
+#endif
 }
 
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow() {
+    delete ui;
+#ifdef DBUS
+    const QString interfaceName = tr("it.qtws.") + configHandler->getName();
+
+    QDBusConnection::sessionBus().unregisterService(interfaceName);
+    QDBusConnection::sessionBus().unregisterObject(tr("/"));
+#endif
+}
 
 void MainWindow::closeEvent(QCloseEvent *) {
     // This will be called whenever this window is closed.
@@ -285,5 +346,19 @@ void MainWindow::newWindowOpen(QUrl url) {
 }
 
 void MainWindow::changeIcon(QIcon icon) {
-//    this->setWindowIcon(icon);
+    //    this->setWindowIcon(icon);
 }
+
+#ifdef DBUS
+void MainWindow::dServicePlay() {
+    qWarning() << tr("Play");
+}
+
+void MainWindow::dServicePause() {
+    qWarning() << tr("Pause");
+}
+
+void MainWindow::dServiceStop() {
+    qWarning() << tr("Stop");
+}
+#endif

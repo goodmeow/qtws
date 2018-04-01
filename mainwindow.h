@@ -11,7 +11,7 @@
 #include <QWebEngineFullScreenRequest>
 #include <QWebEngineView>
 #include "qtws.h"
-#include "browser.h"
+#include "mpris.h"
 
 namespace Ui {
 class MainWindow;
@@ -42,6 +42,11 @@ private slots:
   void onUrlChanged(QUrl url);
   void newWindowOpen(QUrl url);
   void changeIcon(QIcon icon);
+#ifdef DBUS
+  void dServicePlay();
+  void dServicePause();
+  void dServiceStop();
+#endif
 
 protected:
   // save window geometry
@@ -49,8 +54,9 @@ protected:
 
 private:
   Ui::MainWindow *ui;
-  Browser *webview;
+  QWebEngineView *webview;
   bool maximized;
+  Mpris *mpris;
 //  QShortcut *keyF11;   // Entity of F11 hotkey
 //  QShortcut *keyCtrlQ; // Entity of Ctrl + Q hotkey
 //  QShortcut *keyAltLeft; // Entity of Back
