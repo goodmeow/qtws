@@ -4,6 +4,8 @@
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QFile>
+#include <QDebug>
+#include <QRegExp>
 
 using namespace std;
 
@@ -14,8 +16,23 @@ QtWS::QtWS(QString filename) {
     this->loadData(filename);
 }
 
-QString QtWS::getWScope() {
+QList<QString> QtWS::getWScope() {
     return scope;
+}
+
+bool QtWS::isInScope(QUrl url) {
+    for (int i = 0; i < scope.size(); i++) {
+        QString scopeUrl = this->getWScope().at(i);
+
+        QRegExp regex(scopeUrl);
+
+        QString urlBase = url.toString();
+
+        if (regex.indexIn(urlBase) != -1)
+            return true;
+    }
+
+    return false;
 }
 
 QString QtWS::getHome() {

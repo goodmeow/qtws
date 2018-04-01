@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
 
     readSettings();
     webview = new QWebEngineView;
-    webview->setPage(new QtWSWebPage);
+    webview->setPage(new QtWSWebPage(configHandler));
     ui->horizontalLayout->addWidget(webview);
     if (appSettings->value("site").toString() == "") {
         webview->setUrl(QUrl(configHandler->getHome()));
@@ -88,9 +88,6 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
         webview->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
     }
-
-    connect(webview, SIGNAL(urlChanged(QUrl)), this, SLOT(onUrlChanged(QUrl)));
-    connect(webview, SIGNAL(iconChanged(QIcon)), this, SLOT(changeIcon(QIcon)));
 
     connect(webview->page(), &QWebEnginePage::fullScreenRequested, this, &MainWindow::fullScreenRequested);
 
@@ -265,29 +262,6 @@ void MainWindow::actionFullscreen() {
     }
 }
 
-void MainWindow::onUrlChanged(QUrl url) {
-    //QString fileChosen = QFileDialog::getSaveFileName(this);
-
-    for (int i = 0; i < this->configHandler->getWScope().size(); i++) {
-        QString scopeUrl = this->configHandler->getWScope().at(i);
-        QUrl allowedScope = QUrl(scopeUrl);
-
-        if (url.matches(allowedScope,
-                        QUrl::RemovePassword |
-                        QUrl::RemoveFilename |
-                        QUrl::RemovePath |
-                        QUrl::RemoveQuery |
-                        QUrl::RemoveUserInfo |
-                        QUrl::RemoveFragment |
-                        QUrl::RemoveAuthority |
-                        QUrl::RemoveScheme))
-            return;
-    }
-
-    QDesktopServices::openUrl(url);
-    this->webview->stop();
-}
-
 // Slot handler for Ctrl + Q
 void MainWindow::actionQuit() {
     writeSettings();
@@ -319,34 +293,6 @@ void MainWindow::actionMenuTrigger(QAction* action) {
     if (!action->data().isNull()) {
         this->webview->setUrl(action->data().toUrl());
     }
-}
-
-void MainWindow::newWindowOpen(QUrl url) {
-    qWarning() << url.toString().toLatin1();
-    for (int i = 0; i < this->configHandler->getWScope().size(); i++) {
-        QString scopeUrl = this->configHandler->getWScope().at(i);
-        QUrl allowedScope = QUrl(scopeUrl);
-
-        if (url.matches(allowedScope,
-                        QUrl::RemovePassword |
-                        QUrl::RemoveFilename |
-                        QUrl::RemovePath |
-                        QUrl::RemoveQuery |
-                        QUrl::RemoveUserInfo |
-                        QUrl::RemoveFragment |
-                        QUrl::RemoveAuthority |
-                        QUrl::RemoveScheme)) {
-            this->webview->setUrl(url);
-            return;
-        }
-    }
-
-    QDesktopServices::openUrl(url);
-    this->webview->stop();
-}
-
-void MainWindow::changeIcon(QIcon icon) {
-    //    this->setWindowIcon(icon);
 }
 
 #ifdef DBUS

@@ -39,9 +39,6 @@ private slots:
   void actionMenuTrigger(QAction*);
   void ShowContextMenu(const QPoint &pos);
 
-  void onUrlChanged(QUrl url);
-  void newWindowOpen(QUrl url);
-  void changeIcon(QIcon icon);
 #ifdef DBUS
   void dServicePlay();
   void dServicePause();

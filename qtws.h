@@ -10,7 +10,10 @@ public:
     QtWS(QString filename);
 
     QString getName();
-    QString getWScope();
+
+    QList<QString> getWScope();
+    bool isInScope(QUrl);
+
     QList<QString> getPlugins();
     QString getHome();
     QString getIconPath();
@@ -25,7 +28,7 @@ public:
 
 private:
     QString name;
-    QString scope;
+    QList<QString> scope;
     QList<QString> plugins;
     QString home;
     QString iconPath;
