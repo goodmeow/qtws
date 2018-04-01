@@ -41,7 +41,7 @@ To run qtws it is necessary to specify a configuration file which gives instruct
         "saveSession": false,
         
         "plugins": [],
-        "scope": ["youtube.com"],
+        "scope": ["https?:\/\/.*\.youtube\.com(?:\/.*|)"],
         
         "menu": [
             {
@@ -78,7 +78,7 @@ The fields of the json are the following (required in italics):
 - *icon*: local path of the icon that the application should show (string);
 - *saveSession*: if the session has to be saved when the window is closed (e.g., the last page visited) (boolean);
 - *plugins*: list of the plugins needed (ignored at the moment) (array of strings);
-- *scope*: domains that are allowed in the webapps. URLs belonging to other domains will be openend with the browser (array of strings);
+- *scope*: regular expressions of the domains that are allowed in the webapp. URLs belonging to domains not matching with any of the scopes will be openend with the browser (array of strings);
 - menu: additional entries in the contextual menu (array of objects with a title, indicating the name of the menu entry, and an action, indicating the URL that will be set if the entry is selected).
 
 ## Troubleshooting 
