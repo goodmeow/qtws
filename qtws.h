@@ -25,6 +25,7 @@ public:
     bool isSaveSession();
     bool isMenuDisabled();
     bool hasMultimedia();
+    bool canDownload();
 
 private:
     QString name;
@@ -35,6 +36,7 @@ private:
     bool saveSession;
     bool menuDisabled;
     bool multimedia;
+    bool download;
 
     QList<MenuAction> menu;
 

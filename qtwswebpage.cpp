@@ -7,8 +7,6 @@
 
 QtWSWebPage::QtWSWebPage(QtWS *config) {
     configHandler = config;
-
-    connect(this, &QWebEnginePage::linkHovered, this, &QtWSWebPage::onLinkHovered);
 }
 
 QWebEnginePage *QtWSWebPage::createWindow(QWebEnginePage::WebWindowType type) {
@@ -29,32 +27,4 @@ QWebEnginePage *QtWSWebPage::createWindow(QWebEnginePage::WebWindowType type) {
     });
 
     return fakePage;
-}
-
-bool QtWSWebPage::acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame) {
-//    switch(type) {
-//        case QWebEnginePage::NavigationTypeLinkClicked: {
-//            if (this->configHandler->isInScope(url)) {
-//                return true;
-//            } else {
-//                if (isMainFrame) {
-//                    qWarning() << "Opened from acceptNavigationRequest";
-//                    QDesktopServices::openUrl(mLastClickedLink);
-//                    return false;
-//                } else {
-//                    mLastClickedLink = url;
-//                    return true;
-//                }
-//            }
-//        }
-
-//        default:
-//            mLastClickedLink = url;
-//            return true;
-//    }
-    return QWebEnginePage::acceptNavigationRequest(url, type, isMainFrame);
-}
-
-void QtWSWebPage::onLinkHovered(const QString &link) {
-    mLastClickedLink = QUrl(link);
 }

@@ -10,6 +10,7 @@
 #include <QShortcut>
 #include <QWebEngineFullScreenRequest>
 #include <QWebEngineView>
+#include <QProgressBar>
 #include "qtws.h"
 #include "mpris.h"
 
@@ -23,7 +24,6 @@ class MainWindow : public QMainWindow {
 public:
   explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL);
   ~MainWindow();
-  // QAction amazon();
 
 private slots:
   // slots for handlers of hotkeys
@@ -38,6 +38,8 @@ private slots:
 
   void actionMenuTrigger(QAction*);
   void ShowContextMenu(const QPoint &pos);
+
+  void downloadRequested(QWebEngineDownloadItem*);
 
 #ifdef DBUS
   void dServicePlay();
@@ -61,8 +63,9 @@ private:
 //  QShortcut *keyF5; // Entity of F5 hotkey
 //  QShortcut *keyCtrlR; // Entity of Ctrl + R hotkey
   QSettings *appSettings;
-
   QtWS *configHandler;
+
+  QProgressBar *progressBar;
 
   void fullScreenRequested(QWebEngineFullScreenRequest request);
   void writeSettings();

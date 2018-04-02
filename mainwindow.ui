@@ -37,7 +37,7 @@
      <number>0</number>
     </property>
     <item row="0" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout"/>
+     <layout class="QVBoxLayout" name="horizontalLayout"/>
     </item>
    </layout>
   </widget>

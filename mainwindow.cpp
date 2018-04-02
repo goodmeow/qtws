@@ -12,6 +12,8 @@
 #include <QDesktopServices>
 #include <QWebEngineHistory>
 #include <QFileDialog>
+#include <QWebEngineProfile>
+#include <QProgressBar>
 #include "menuaction.h"
 #include "qtwswebpage.h"
 
@@ -41,6 +43,13 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     } else {
         webview->setUrl(QUrl(appSettings->value("site").toString()));
     }
+
+    if (this->configHandler->canDownload()) {
+        progressBar = new QProgressBar(this);
+        ui->horizontalLayout->addWidget(progressBar);
+        progressBar->hide();
+    }
+
     webview->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
     webview->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
 
@@ -87,6 +96,10 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
     } else {
         webview->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+    }
+
+    if (this->configHandler->canDownload()) {
+        connect(QWebEngineProfile::defaultProfile(), SIGNAL(downloadRequested(QWebEngineDownloadItem*)), this, SLOT(downloadRequested(QWebEngineDownloadItem*)));
     }
 
     connect(webview->page(), &QWebEnginePage::fullScreenRequested, this, &MainWindow::fullScreenRequested);
@@ -292,6 +305,50 @@ void MainWindow::actionTogglePlay() {
 void MainWindow::actionMenuTrigger(QAction* action) {
     if (!action->data().isNull()) {
         this->webview->setUrl(action->data().toUrl());
+    }
+}
+
+void MainWindow::downloadRequested(QWebEngineDownloadItem* download) {
+    if (this->configHandler->canDownload()) {
+        qDebug() << "Format: " <<  download->savePageFormat();
+        qDebug() << "Path: " << download->path();
+        // If you want to modify something like the default path or the format
+        QString filename = QFileDialog::getSaveFileName(this);
+        download->setPath(filename);
+        // Check your url to accept/reject the download
+        download->accept();
+
+        progressBar->setRange(0, 100);
+        progressBar->setValue(0);
+        progressBar->show();
+        connect(download, &QWebEngineDownloadItem::downloadProgress, this, [this](qint64 received, qint64 total) {
+            QString unit;
+            qint64 copyReceived = received;
+            if (copyReceived < 1024) {
+                unit = tr("bytes");
+            } else if (copyReceived < 1024*1024) {
+                copyReceived /= 1024;
+                unit = tr("KB");
+            } else {
+                copyReceived /= 1024*1024;
+                unit = tr("MB");
+            }
+
+            this->progressBar->setToolTip(QString::number(copyReceived) + QString(" ") + unit);
+            this->progressBar->setStatusTip(QString::number(copyReceived) + QString(" ") + unit);
+
+            if (total > 0) {
+                this->progressBar->setValue((int)(received * 100 / total));
+            } else {
+                this->progressBar->setRange(0, __INT32_MAX__);
+                this->progressBar->setValue(copyReceived);
+                this->progressBar->setFormat(tr("%v ") + unit);
+            }
+        });
+
+        connect(download, &QWebEngineDownloadItem::finished, this, [this, download]() {
+            this->progressBar->hide();
+        });
     }
 }
 
