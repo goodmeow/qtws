@@ -1,5 +1,5 @@
 language: cpp
-dist: zesty
+dist: xenial
 compiler: g++
 sudo: required
 
@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get update
 
 install:
-  - sudo apt-get install qt58base qt58svg qt58charts-no-lgpl qt58xmlpatterns
+  - sudo apt-get install qt59base qt59svg qt58charts-no-lgpl qt59xmlpatterns qt59webengine
   - source /opt/qt58/bin/qt58-env.sh
 
 
