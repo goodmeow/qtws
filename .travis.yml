@@ -9,9 +9,9 @@ before_install:
 
 install:
   - sudo apt-get install qt59base qt59svg qt59xmlpatterns qt59webengine
-  - source /opt/qt58/bin/qt58-env.sh
+  - source /opt/qt59/bin/qt59-env.sh
 
 
 script:
-  - /opt/qt58/bin/qmake PREFIX=/usr
+  - /opt/qt59/bin/qmake PREFIX=/usr
   - make
