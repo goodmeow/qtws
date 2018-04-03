@@ -1,5 +1,6 @@
 # qtws
 [![Build Status](https://travis-ci.org/intersimone999/qtws.svg?branch=master)](https://travis-ci.org/intersimone999/qtws)
+
 A qt webengine program to easily create very basic and lightweight desktop webapps.
 
 Available in the [AUR](https://aur.archlinux.org/packages/qtws-base/)!
