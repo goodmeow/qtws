@@ -14,6 +14,7 @@
 #include <QFileDialog>
 #include <QWebEngineProfile>
 #include <QProgressBar>
+#include <QIcon>
 #include "menuaction.h"
 #include "qtwswebpage.h"
 
@@ -225,23 +226,23 @@ void MainWindow::ShowContextMenu(const QPoint &pos) {
 
     QMenu *myMenu = new QMenu();
 
-    myMenu->addAction(QString("Back"), this, &MainWindow::actionBack);
+    myMenu->addAction(QIcon::fromTheme(QString("back")), QString("Back"), this, &MainWindow::actionBack);
 
     if (!webview->page()->history()->canGoBack()) {
         myMenu->actions().at(0)->setEnabled(false);
     }
 
-    myMenu->addAction(QString("Reload"), this, &MainWindow::actionReload);
-    myMenu->addAction(QString("Home"), this, &MainWindow::actionHome);
+    myMenu->addAction(QIcon::fromTheme(QString("reload")), QString("Reload"), this, &MainWindow::actionReload);
+    myMenu->addAction(QIcon::fromTheme(QString("go-home")), QString("Home"), this, &MainWindow::actionHome);
 
     if (configHandler->hasMultimedia()) {
         myMenu->addSeparator();
         if (webview->page()->isAudioMuted())
-            myMenu->addAction(QString("Unmute"), this, &MainWindow::actionToggleMute);
+            myMenu->addAction(QIcon::fromTheme(QString("audio-volume-muted")), QString("Unmute"), this, &MainWindow::actionToggleMute);
         else
-            myMenu->addAction(QString("Mute"), this, &MainWindow::actionToggleMute);
+            myMenu->addAction(QIcon::fromTheme(QString("audio-volume-high")), QString("Mute"), this, &MainWindow::actionToggleMute);
 
-        myMenu->addAction(QString("Play/Pause"), this, &MainWindow::actionTogglePlay);
+        myMenu->addAction(QIcon::fromTheme(QString("media-playback-start")), QString("Play/Pause"), this, &MainWindow::actionTogglePlay);
     }
 
     if (configHandler->getMenu().size() > 0) {
@@ -249,7 +250,13 @@ void MainWindow::ShowContextMenu(const QPoint &pos) {
 
         for (int i = 0; i < configHandler->getMenu().size(); i++) {
             MenuAction action = configHandler->getMenu().at(i);
-            QAction* menuAction = myMenu->addAction(action.getTitle());
+
+            QAction* menuAction;
+            if (action.hasIcon())
+                menuAction = myMenu->addAction(action.getIcon(), action.getTitle());
+            else
+                menuAction = myMenu->addAction(action.getTitle());
+
             menuAction->setData(action.getUrl());
         }
     }
@@ -258,7 +265,7 @@ void MainWindow::ShowContextMenu(const QPoint &pos) {
 
     //TODO insert all the custom actions here
     myMenu->addSeparator();
-    myMenu->addAction(QString("Quit"), this, &MainWindow::actionQuit);
+    myMenu->addAction(QIcon::fromTheme(QString("application-exit")), QString("Quit"), this, &MainWindow::actionQuit);
 
     myMenu->popup(globalPos);
 }
@@ -306,7 +313,7 @@ void MainWindow::actionToggleMute() {
 }
 
 void MainWindow::actionTogglePlay() {
-    webview->page()->triggerAction(QWebEnginePage::ToggleMediaPlayPause);
+    webview->page()->runJavaScript(QString("x=document.getElementsByTagName(\"video\"); for(i = 0; i < x.length; i++) {if (x[i].paused) {x[i].play()} else {x[i].pause()}};"));
 }
 
 void MainWindow::actionMenuTrigger(QAction* action) {

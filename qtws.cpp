@@ -193,14 +193,22 @@ void QtWS::loadData(QString filename) {
                     QJsonObject menuItem = element.toObject();
                     QJsonValue menuItemName     = menuItem.value(QString("title"));
                     QJsonValue menuItemAction   = menuItem.value(QString("action"));
+                    QJsonValue menuItemIcon     = menuItem.value(QString("icon"));
 
                     if (!menuItemName.isString()) {
                         throw QString("Menu item does not have a title");
                     } else if (!menuItemAction.isString()) {
                         throw QString("Menu item does not have an action");
+                    } else if (!menuItemIcon.isString() && !menuItemIcon.isUndefined()) {
+                        throw QString("Menu item does not have a string icon name");
                     } else {
-                        MenuAction action(menuItemName.toString(), menuItemAction.toString());
-                        this->menu.append(action);
+                        if (menuItemIcon.isUndefined()) {
+                            MenuAction action(menuItemName.toString(), menuItemAction.toString());
+                            this->menu.append(action);
+                        } else {
+                            MenuAction action(menuItemName.toString(), menuItemAction.toString(), menuItemIcon.toString());
+                            this->menu.append(action);
+                        }
                     }
                 }
             }
