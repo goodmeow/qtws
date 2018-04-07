@@ -19,58 +19,60 @@ class MainWindow;
 }
 
 class MainWindow : public QMainWindow {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL);
-  ~MainWindow();
+    explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL);
+    ~MainWindow();
+
+    void gotoUrl(QUrl);
 
 private slots:
-  // slots for handlers of hotkeys
-  void actionFullscreen();
-  void actionQuit();
-  void actionHome();
-  void actionBack();
-  void actionReload();
+    // slots for handlers of hotkeys
+    void actionFullscreen();
+    void actionQuit();
+    void actionHome();
+    void actionBack();
+    void actionReload();
 
-  void actionToggleMute();
-  void actionTogglePlay();
+    void actionToggleMute();
+    void actionTogglePlay();
 
-  void actionMenuTrigger(QAction*);
-  void ShowContextMenu(const QPoint &pos);
+    void actionMenuTrigger(QAction*);
+    void ShowContextMenu(const QPoint &pos);
 
-  void downloadRequested(QWebEngineDownloadItem*);
+    void downloadRequested(QWebEngineDownloadItem*);
 
 #ifdef DBUS
-  void dServicePlay();
-  void dServicePause();
-  void dServiceStop();
+    void dServicePlay();
+    void dServicePause();
+    void dServiceStop();
 #endif
 
 protected:
-  // save window geometry
-  void closeEvent(QCloseEvent *);
+    // save window geometry
+    void closeEvent(QCloseEvent *);
 
 private:
-  Ui::MainWindow *ui;
-  QWebEngineView *webview;
-  bool maximized;
-  Mpris *mpris;
+    Ui::MainWindow *ui;
+    QWebEngineView *webview;
+    bool maximized;
+    Mpris *mpris;
 //  QShortcut *keyF11;   // Entity of F11 hotkey
 //  QShortcut *keyCtrlQ; // Entity of Ctrl + Q hotkey
 //  QShortcut *keyAltLeft; // Entity of Back
 //  QShortcut *keyCtrlH; // Entity of Ctrl + H hotkey
 //  QShortcut *keyF5; // Entity of F5 hotkey
 //  QShortcut *keyCtrlR; // Entity of Ctrl + R hotkey
-  QSettings *appSettings;
-  QtWS *configHandler;
+    QSettings *appSettings;
+    QtWS *configHandler;
 
-  QProgressBar *progressBar;
+    QProgressBar *progressBar;
 
-  void fullScreenRequested(QWebEngineFullScreenRequest request);
-  void writeSettings();
-  void readSettings();
-  void restore();
+    void fullScreenRequested(QWebEngineFullScreenRequest request);
+    void writeSettings();
+    void readSettings();
+    void restore();
 };
 
 #endif // MAINWINDOW_H

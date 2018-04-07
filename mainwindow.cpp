@@ -163,6 +163,13 @@ MainWindow::~MainWindow() {
 #endif
 }
 
+void MainWindow::gotoUrl(QUrl url) {
+    if (this->configHandler->isInScope(url))
+        this->webview->setUrl(url);
+    else
+        QMessageBox::warning(this, tr("Invalid URL"), tr("The requested URL is not in the scope of this web application."), QMessageBox::Ok);
+}
+
 void MainWindow::closeEvent(QCloseEvent *) {
     // This will be called whenever this window is closed.
     writeSettings();
