@@ -15,6 +15,8 @@
 #include <QWebEngineProfile>
 #include <QProgressBar>
 #include <QIcon>
+#include <QClipboard>
+
 #include "menuaction.h"
 #include "qtwswebpage.h"
 
@@ -23,10 +25,9 @@
 #include <QtDBus/QtDBus>
 #endif
 
-MainWindow::MainWindow(QWidget *parent, QtWS *configHandler)
-    : QMainWindow(parent), ui(new Ui::MainWindow)
-
-{    
+MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
+    : QMainWindow(parent), ui(new Ui::MainWindow) {
+    this->app = app;
     this->configHandler = configHandler;
 
     this->mpris = new Mpris(this, configHandler->getName());
@@ -234,6 +235,10 @@ void MainWindow::ShowContextMenu(const QPoint &pos) {
 
     myMenu->addAction(QIcon::fromTheme(QString("reload")), QString("Reload"), this, &MainWindow::actionReload);
     myMenu->addAction(QIcon::fromTheme(QString("go-home")), QString("Home"), this, &MainWindow::actionHome);
+    myMenu->addAction(QIcon::fromTheme(QString("emblem-shared")), QString("Share"), this, [this]() {
+        this->app->clipboard()->setText(this->webview->url().toString());
+        QMessageBox::information(this, QString("Sharing"), QString("Copied to the clipboard"), QMessageBox::Ok);
+    });
 
     if (configHandler->hasMultimedia()) {
         myMenu->addSeparator();

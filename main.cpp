@@ -10,20 +10,17 @@
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    //app.setWindowIcon(QIcon(QLatin1String("netflix-desktop")));
 
     if (argc < 2) {
         qWarning() << "Specify the configuration file";
         return -1;
     }
 
-    char* urlToOpen = nullptr;
-
     try {
         QtWS *configHandler = new QtWS(argv[1]);
 
         app.setWindowIcon(QIcon(configHandler->getIconPath()));
-        MainWindow* w = new MainWindow(NULL, configHandler);
+        MainWindow* w = new MainWindow(NULL, configHandler, &app);
         w->show();
 
         if (argc == 3) {

@@ -22,7 +22,7 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL);
+    explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL, QApplication *app = NULL);
     ~MainWindow();
 
     void gotoUrl(QUrl);
@@ -73,6 +73,8 @@ private:
     void writeSettings();
     void readSettings();
     void restore();
+
+    QApplication *app;
 };
 
 #endif // MAINWINDOW_H
