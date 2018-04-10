@@ -11,6 +11,7 @@ public:
     QtWSWebPage(QtWS*);
 
     virtual QWebEnginePage *createWindow(WebWindowType);
+    virtual bool acceptNavigationRequest(const QUrl &url, NavigationType type, bool isMainFrame);
 private:
     QtWS *configHandler;
 };

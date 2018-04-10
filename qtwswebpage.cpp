@@ -14,12 +14,14 @@ QWebEnginePage *QtWSWebPage::createWindow(QWebEnginePage::WebWindowType type) {
 
     connect(fakePage, &QWebEnginePage::urlChanged, this, [this, fakePage](QUrl url) {
         if (!this->configHandler->isInScope(url)) {
-            QDesktopServices::openUrl(url);
+            if (url.scheme() != "about" && url.scheme() != "") {
+                QDesktopServices::openUrl(url);
+                fakePage->triggerAction(QWebEnginePage::Stop);
+                fakePage->triggerAction(QWebEnginePage::RequestClose);
+            }
         } else {
             this->setUrl(url);
         }
-
-        fakePage->triggerAction(QWebEnginePage::RequestClose);
     });
 
     connect(fakePage, &QWebEnginePage::windowCloseRequested, this, []() {
@@ -27,4 +29,15 @@ QWebEnginePage *QtWSWebPage::createWindow(QWebEnginePage::WebWindowType type) {
     });
 
     return fakePage;
+}
+
+bool QtWSWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) {
+    if (type == QWebEnginePage::NavigationTypeLinkClicked &&
+            !this->configHandler->isInScope(url) &&
+            isMainFrame) {
+        QDesktopServices::openUrl(url);
+        return false;
+    }
+
+    return true;
 }
