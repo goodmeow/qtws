@@ -29,12 +29,11 @@ Read this <html>http://blog.qt.io/blog/2016/06/03/netflix-qt-webengine-5-7/</htm
 ## Installation
 - Install qt5
 - Compile qtwebengine according to the link above
-- Dowload the source.
-- cd into the folder
-- Type make clean
-- Type qmake -config release
-- Type make
-- Binary will be labeled netflix
+- `git clone https://github.com/intersimone999/qtws.git`
+- `cd qtws/build`
+- Type `qmake -config release ..`
+- Type `make`
+- Binary will be labeled `qtws`
 
 ## Features
 The installed qtws allows you to easily create an embedded version of an online webapp. The basic version of qtws features a menu that can be activated with a right click anywhere. This menu allows to go back (Alt+left arrow), to go to the home (Ctrl+H) of the webapp and to reload the page (Ctrl+R or F5). It is also possible to switch to the fullscreen mode pushing F11.

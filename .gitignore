@@ -5,3 +5,4 @@ Makefile
 *.stash
 qtws
 *.pro.user
+build
