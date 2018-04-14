@@ -23,6 +23,7 @@ public:
     QString getConfigName();
 
     bool isSaveSession();
+    bool isAlwaysOnTop();
     bool isMenuDisabled();
     bool hasMultimedia();
     bool canDownload();
@@ -34,6 +35,7 @@ private:
     QString home;
     QString iconPath;
     bool saveSession;
+    bool alwaysOnTop;
     bool menuDisabled;
     bool multimedia;
     bool download;

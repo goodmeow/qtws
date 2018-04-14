@@ -8,6 +8,7 @@
         "menuDisabled": false,
         "multimedia": true,
         "download": true,
+        "alwaysOnTop": true,
         "menu": [
             {
                 "title": "Trendingsssssss",

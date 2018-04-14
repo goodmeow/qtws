@@ -13,6 +13,7 @@ QtWS::QtWS(QString filename) {
     this->multimedia    = false;
     this->menuDisabled  = false;
     this->download      = false;
+    this->alwaysOnTop   = false;
 
     this->loadData(filename);
 }
@@ -58,6 +59,10 @@ bool QtWS::isSaveSession() {
 
 QString QtWS::getName() {
     return name;
+}
+
+bool QtWS::isAlwaysOnTop() {
+    return this->alwaysOnTop;
 }
 
 bool QtWS::isMenuDisabled() {
@@ -149,6 +154,13 @@ void QtWS::loadData(QString filename) {
         throw QString("Save session is not boolean");
     } else {
         this->saveSession = sessionInJson.toBool();
+    }
+
+    QJsonValue alwaysOnTopVal = jsonObject.value(QString("alwaysOnTop"));
+    if (!alwaysOnTopVal.isBool()) {
+        this->alwaysOnTop = false;
+    } else {
+        this->alwaysOnTop = alwaysOnTopVal.toBool();
     }
 
     QJsonValue menuDisabledJson = jsonObject.value(QString("menuDisabled"));

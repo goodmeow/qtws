@@ -108,6 +108,9 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
 
     this->window()->setWindowTitle(this->configHandler->getName());
     this->setWindowIcon(QIcon(this->configHandler->getIconPath()));
+    if (this->configHandler->isAlwaysOnTop()) {
+        this->setWindowFlags(Qt::WindowStaysOnTopHint);
+    }
 
 #ifdef DBUS
     if (configHandler->hasMultimedia()) {
