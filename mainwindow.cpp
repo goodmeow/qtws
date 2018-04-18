@@ -29,7 +29,6 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
     this->app = app;
     this->configHandler = configHandler;
-
     this->mpris = new Mpris(this, configHandler->getName());
 
     QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
@@ -37,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
     ui->setupUi(this);
 
     readSettings();
+
     webview = new QWebEngineView;
     webview->setPage(new QtWSWebPage(configHandler));
     ui->horizontalLayout->addWidget(webview);
@@ -55,39 +55,7 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
     webview->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
     webview->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
 
-    QShortcut* keyF11 = new QShortcut(this);
-    keyF11->setKey(Qt::Key_F11);
-    connect(keyF11, SIGNAL(activated()), this, SLOT(actionFullscreen()));
-
-    QShortcut* keyCtrlQ = new QShortcut(this);
-    keyCtrlQ->setKey(Qt::CTRL + Qt::Key_Q);
-    connect(keyCtrlQ, SIGNAL(activated()), this, SLOT(actionQuit()));
-
-    QShortcut* keyCtrlH = new QShortcut(this);
-    keyCtrlH->setKey(Qt::CTRL + Qt::Key_H);
-    connect(keyCtrlH, SIGNAL(activated()), this, SLOT(actionHome()));
-
-    QShortcut* keyCtrlR = new QShortcut(this);
-    keyCtrlR->setKey(Qt::CTRL + Qt::Key_R);
-    connect(keyCtrlR, SIGNAL(activated()), this, SLOT(actionReload()));
-
-    QShortcut* keyF5 = new QShortcut(this);
-    keyF5->setKey(Qt::Key_F5);
-    connect(keyF5, SIGNAL(activated()), this, SLOT(actionReload()));
-
-    if (configHandler->hasMultimedia()) {
-        QShortcut* keyCtrlM = new QShortcut(this);
-        keyCtrlM->setKey(Qt::CTRL + Qt::Key_M);
-        connect(keyCtrlM, SIGNAL(activated()), this, SLOT(actionToggleMute()));
-
-        QShortcut* keyCtrlP = new QShortcut(this);
-        keyCtrlP->setKey(Qt::CTRL + Qt::Key_M);
-        connect(keyCtrlP, SIGNAL(activated()), this, SLOT(actionTogglePlay()));
-    }
-
-    QShortcut* keyAltLeft = new QShortcut(this);         // Initialize the object
-    keyAltLeft->setKey(Qt::ALT + Qt::Key_Left); // Set the key code
-    connect(keyAltLeft, SIGNAL(activated()), this, SLOT(actionBack()));
+    setupShortcuts();
 
     // Window size settings
     QSettings settings;
@@ -100,9 +68,14 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
         connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
     }
 
+    QWebEngineProfile *profile = QWebEngineProfile::defaultProfile();
+
     if (this->configHandler->canDownload()) {
-        connect(QWebEngineProfile::defaultProfile(), SIGNAL(downloadRequested(QWebEngineDownloadItem*)), this, SLOT(downloadRequested(QWebEngineDownloadItem*)));
+        connect(profile, SIGNAL(downloadRequested(QWebEngineDownloadItem*)), this, SLOT(downloadRequested(QWebEngineDownloadItem*)));
     }
+
+    profile->setCachePath(profile->cachePath() + "/" + configHandler->getName());
+    profile->setPersistentStoragePath(profile->persistentStoragePath() + "/" + configHandler->getName());
 
     connect(webview->page(), &QWebEnginePage::fullScreenRequested, this, &MainWindow::fullScreenRequested);
 
@@ -202,6 +175,42 @@ void MainWindow::restore() {
 
   restoreState(stateData);
   restoreGeometry(geometryData);
+}
+
+void MainWindow::setupShortcuts() {
+    QShortcut* keyF11 = new QShortcut(this);
+    keyF11->setKey(Qt::Key_F11);
+    connect(keyF11, SIGNAL(activated()), this, SLOT(actionFullscreen()));
+
+    QShortcut* keyCtrlQ = new QShortcut(this);
+    keyCtrlQ->setKey(Qt::CTRL + Qt::Key_Q);
+    connect(keyCtrlQ, SIGNAL(activated()), this, SLOT(actionQuit()));
+
+    QShortcut* keyCtrlH = new QShortcut(this);
+    keyCtrlH->setKey(Qt::CTRL + Qt::Key_H);
+    connect(keyCtrlH, SIGNAL(activated()), this, SLOT(actionHome()));
+
+    QShortcut* keyCtrlR = new QShortcut(this);
+    keyCtrlR->setKey(Qt::CTRL + Qt::Key_R);
+    connect(keyCtrlR, SIGNAL(activated()), this, SLOT(actionReload()));
+
+    QShortcut* keyF5 = new QShortcut(this);
+    keyF5->setKey(Qt::Key_F5);
+    connect(keyF5, SIGNAL(activated()), this, SLOT(actionReload()));
+
+    if (configHandler->hasMultimedia()) {
+        QShortcut* keyCtrlM = new QShortcut(this);
+        keyCtrlM->setKey(Qt::CTRL + Qt::Key_M);
+        connect(keyCtrlM, SIGNAL(activated()), this, SLOT(actionToggleMute()));
+
+        QShortcut* keyCtrlP = new QShortcut(this);
+        keyCtrlP->setKey(Qt::CTRL + Qt::Key_M);
+        connect(keyCtrlP, SIGNAL(activated()), this, SLOT(actionTogglePlay()));
+    }
+
+    QShortcut* keyAltLeft = new QShortcut(this);         // Initialize the object
+    keyAltLeft->setKey(Qt::ALT + Qt::Key_Left); // Set the key code
+    connect(keyAltLeft, SIGNAL(activated()), this, SLOT(actionBack()));
 }
 
 void MainWindow::readSettings() {

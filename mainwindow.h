@@ -58,12 +58,6 @@ private:
     QWebEngineView *webview;
     bool maximized;
     Mpris *mpris;
-//  QShortcut *keyF11;   // Entity of F11 hotkey
-//  QShortcut *keyCtrlQ; // Entity of Ctrl + Q hotkey
-//  QShortcut *keyAltLeft; // Entity of Back
-//  QShortcut *keyCtrlH; // Entity of Ctrl + H hotkey
-//  QShortcut *keyF5; // Entity of F5 hotkey
-//  QShortcut *keyCtrlR; // Entity of Ctrl + R hotkey
     QSettings *appSettings;
     QtWS *configHandler;
 
@@ -73,6 +67,8 @@ private:
     void writeSettings();
     void readSettings();
     void restore();
+
+    void setupShortcuts();
 
     QApplication *app;
 };

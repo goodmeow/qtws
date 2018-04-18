@@ -1,8 +1,8 @@
 {
         "name": "Google Drive",
-        "scope": ["https?\:\/\/.*\.google\.com\/drive(?:\/.*|)", "https?\:\/\/drive\.google\.com(?:\/.*|)"],
+        "scope": ["https?\:\/\/accounts\.google\.com\/(?:\/.*|)", "https?\:\/\/.*\.google\.com\/drive(?:\/.*|)", "https?\:\/\/drive\.google\.com(?:\/.*|)"],
         "plugins": [],
-        "home": "http://drive.google.com",
+        "home": "http://drive.google.com/drive",
         "icon": "/home/simone/Workspace/QtProjects/qtws/data/YouTube.svg",
         "saveSession": false,
         "menuDisabled": false,

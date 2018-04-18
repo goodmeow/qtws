@@ -94,6 +94,8 @@ void QtWS::loadData(QString filename) {
     if (!titleInJson.isString()) {
         throw QString("The title is not a string");
     } else {
+        if (this->name.contains(QString("/")) || this->name.contains("\\"))
+            throw QString("Illegal name " + this->name + ": it cannot contain slashes or backslashes.");
         this->name = titleInJson.toString();
     }
 
