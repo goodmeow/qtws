@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QDebug>
 #include <QRegExp>
+#include <QStringList>
 
 using namespace std;
 
@@ -15,6 +16,7 @@ QtWS::QtWS(QString filename) {
     this->download      = false;
     this->alwaysOnTop   = false;
     this->cacheMB       = 50;
+    this->permissions.clear();
 
     this->loadData(filename);
 }
@@ -80,6 +82,20 @@ bool QtWS::canDownload() {
 
 int QtWS::getCacheMB() {
     return this->cacheMB;
+}
+
+bool QtWS::hasPermission(QWebEnginePage::Feature permissionId) {
+    for (int i = 0; i < this->permissions.size(); i++) {
+        if (this->permissions.at(i) == (int)permissionId) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+QString QtWS::getUserReadablePermissions() {
+    return this->userReadablePermissions.join(QString(", "));
 }
 
 
@@ -204,6 +220,51 @@ void QtWS::loadData(QString filename) {
             throw QString("Download is not boolean");
         } else {
             this->download = downloadJson.toBool();
+        }
+    }
+
+    QJsonValue permissionsInJson = jsonObject.value(QString("permissions"));
+    if (!permissionsInJson.isUndefined()) {
+        this->permissions.clear();
+        if (!permissionsInJson.isArray()) {
+            throw QString("Permissions is not an array");
+        } else {
+            QJsonArray permissionsArray = permissionsInJson.toArray();
+            for (int i = 0; i < permissionsArray.size(); i++) {
+                QJsonValue permissionItem = permissionsArray.at(i);
+                if (!permissionItem.isString()) {
+                    throw QString("All the permissions have to be strings");
+                }
+
+                QString permissionRequested = permissionItem.toString();
+
+                if      (permissionRequested == QString("Notifications")) {
+                    this->permissions.append(0);
+                    this->userReadablePermissions.append(QString("Notifications"));
+                } else if (permissionRequested == QString("Geolocation")) {
+                    this->permissions.append(1);
+                    this->userReadablePermissions.append(QString("Geolocation"));
+                } else if (permissionRequested == QString("MediaAudioCapture")) {
+                    this->permissions.append(2);
+                    this->userReadablePermissions.append(QString("Microphone"));
+                } else if (permissionRequested == QString("MediaVideoCapture")) {
+                    this->permissions.append(3);
+                    this->userReadablePermissions.append(QString("Camera"));
+                } else if (permissionRequested == QString("MediaAudioVideoCapture")) {
+                    this->permissions.append(4);
+                    this->userReadablePermissions.append(QString("Microphone+Camera"));
+                } else if (permissionRequested == QString("MouseLock")) {
+                    this->permissions.append(5);
+                    this->userReadablePermissions.append(QString("Mouse lock"));
+                } else if (permissionRequested == QString("DesktopVideoCapture")) {
+                    this->permissions.append(6);
+                    this->userReadablePermissions.append(QString("Desktop video capture"));
+                } else if (permissionRequested == QString("DesktopAudioVideoCapture")) {
+                    this->permissions.append(7);
+                    this->userReadablePermissions.append(QString("Desktop video+audio capture"));
+                } else
+                    throw QString("Invalid permission \"") + permissionRequested + QString("\"");
+            }
         }
     }
 

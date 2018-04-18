@@ -214,6 +214,21 @@ void MainWindow::setupShortcuts() {
 }
 
 void MainWindow::readSettings() {
+    if (!this->appSettings->value(QString("permissions/accepted")).toBool()) {
+        // TODO add dialog for the confirmation
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this,
+                                      "Permissions",
+                                      "Do you grant the following permissions to " + this->configHandler->getName() + "?\n" + this->configHandler->getUserReadablePermissions(),
+                                      QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            this->appSettings->setValue("permissions/accepted", true);
+        } else {
+            QMessageBox::warning(this, "Error", "This application requires those permissions to work properly. The application will exit.", QMessageBox::Ok);
+            exit(0);
+        }
+    }
+
     if (this->configHandler->isSaveSession())
         restore();
 }

@@ -7,6 +7,17 @@
 
 QtWSWebPage::QtWSWebPage(QtWS *config) {
     configHandler = config;
+
+//    connect(this, SIGNAL(featurePermissionRequested(QUrl,QWebEnginePage::Feature)), this, SLOT(checkPermission(QUrl&, QWebEnginePage::Feature)));
+    connect(this, &QWebEnginePage::featurePermissionRequested, this, [this](const QUrl &url, QWebEnginePage::Feature permission) {
+        if (this->configHandler->hasPermission(permission)) {
+            qWarning() << QString("Automatically granted permission ") + permission;
+            this->setFeaturePermission(url, permission, QWebEnginePage::PermissionGrantedByUser);
+        } else {
+            qWarning() << QString("Automatically refused permission ") + permission;
+            this->setFeaturePermission(url, permission, QWebEnginePage::PermissionDeniedByUser);
+        }
+    });
 }
 
 QWebEnginePage *QtWSWebPage::createWindow(QWebEnginePage::WebWindowType type) {
@@ -40,4 +51,14 @@ bool QtWSWebPage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Navig
     }
 
     return true;
+}
+
+void QtWSWebPage::checkPermission(QUrl &url, QWebEnginePage::Feature permission) {
+    if (this->configHandler->hasPermission(permission)) {
+        qWarning() << QString("Automatically granted permission ") + permission;
+        this->setFeaturePermission(url, permission, QWebEnginePage::PermissionGrantedByUser);
+    } else {
+        qWarning() << QString("Automatically refused permission ") + permission;
+        this->setFeaturePermission(url, permission, QWebEnginePage::PermissionDeniedByUser);
+    }
 }

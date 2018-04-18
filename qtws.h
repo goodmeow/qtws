@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QList>
+#include <QStringList>
+#include <QWebEnginePage>
 #include "menuaction.h"
 
 class QtWS {
@@ -29,6 +31,10 @@ public:
     bool canDownload();
     int getCacheMB();
 
+    bool hasPermission(QWebEnginePage::Feature);
+
+    QString getUserReadablePermissions();
+
 private:
     QString name;
     QList<QString> scope;
@@ -41,6 +47,9 @@ private:
     bool multimedia;
     bool download;
     int cacheMB;
+
+    QList<int> permissions;
+    QStringList userReadablePermissions;
 
     QList<MenuAction> menu;
 
