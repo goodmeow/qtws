@@ -27,6 +27,7 @@ public:
     bool isMenuDisabled();
     bool hasMultimedia();
     bool canDownload();
+    int getCacheMB();
 
 private:
     QString name;
@@ -39,6 +40,7 @@ private:
     bool menuDisabled;
     bool multimedia;
     bool download;
+    int cacheMB;
 
     QList<MenuAction> menu;
 

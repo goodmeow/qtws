@@ -9,6 +9,7 @@
         "multimedia": true,
         "download": true,
         "alwaysOnTop": true,
+        "cacheMB": 50,
         "menu": [
             {
                 "title": "Trendingsssssss",

@@ -14,6 +14,7 @@ QtWS::QtWS(QString filename) {
     this->menuDisabled  = false;
     this->download      = false;
     this->alwaysOnTop   = false;
+    this->cacheMB       = 50;
 
     this->loadData(filename);
 }
@@ -75,6 +76,10 @@ bool QtWS::hasMultimedia() {
 
 bool QtWS::canDownload() {
     return this->download;
+}
+
+int QtWS::getCacheMB() {
+    return this->cacheMB;
 }
 
 
@@ -144,7 +149,7 @@ void QtWS::loadData(QString filename) {
     }
 
     QJsonValue iconInJson = jsonObject.value(QString("icon"));
-    if (!titleInJson.isString()) {
+    if (!iconInJson.isString()) {
         throw QString("The icon is not a string");
         return;
     } else {
@@ -156,6 +161,16 @@ void QtWS::loadData(QString filename) {
         throw QString("Save session is not boolean");
     } else {
         this->saveSession = sessionInJson.toBool();
+    }
+
+    QJsonValue cacheInJson = jsonObject.value(QString("cacheMB"));
+    if (!cacheInJson.isUndefined()) {
+        if (!cacheInJson.isDouble()) {
+            throw QString("The cache is not a number");
+            return;
+        } else {
+            this->cacheMB = iconInJson.toInt(50);
+        }
     }
 
     QJsonValue alwaysOnTopVal = jsonObject.value(QString("alwaysOnTop"));

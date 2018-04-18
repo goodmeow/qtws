@@ -73,9 +73,9 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
     if (this->configHandler->canDownload()) {
         connect(profile, SIGNAL(downloadRequested(QWebEngineDownloadItem*)), this, SLOT(downloadRequested(QWebEngineDownloadItem*)));
     }
-
     profile->setCachePath(profile->cachePath() + "/" + configHandler->getName());
     profile->setPersistentStoragePath(profile->persistentStoragePath() + "/" + configHandler->getName());
+    profile->setHttpCacheMaximumSize(this->configHandler->getCacheMB() * 1024 * 1024);
 
     connect(webview->page(), &QWebEnginePage::fullScreenRequested, this, &MainWindow::fullScreenRequested);
 
