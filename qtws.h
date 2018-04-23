@@ -32,6 +32,7 @@ public:
     int getCacheMB();
 
     bool hasPermission(QWebEnginePage::Feature);
+    int getNumberOfPermissions();
 
     QString getUserReadablePermissions();
 

@@ -25,49 +25,70 @@
 #include <QtDBus/QtDBus>
 #endif
 
-MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app) : QMainWindow(parent), ui(new Ui::MainWindow) {
     this->app = app;
     this->configHandler = configHandler;
     this->mpris = new Mpris(this, configHandler->getName());
+    this->appSettings = new QSettings(configHandler->getConfigName(), "Save State", this);
 
     QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
-    appSettings = new QSettings(configHandler->getConfigName(), "Save State", this);
-    ui->setupUi(this);
 
+    initializeUI();
     readSettings();
+    initializeShortcuts();
 
-    webview = new QWebEngineView;
-    webview->setPage(new QtWSWebPage(configHandler));
+//    QSettings settings;
+//    restoreState(settings.value("mainWindowState").toByteArray());
+
+    initializeWebView();
+    initializeMPRIS();
+}
+
+MainWindow::~MainWindow() {
+    delete ui;
+#ifdef DBUS
+    const QString interfaceName = tr("it.qtws.") + configHandler->getName();
+
+    QDBusConnection::sessionBus().unregisterService(interfaceName);
+    QDBusConnection::sessionBus().unregisterObject(tr("/"));
+#endif
+}
+
+void MainWindow::gotoUrl(QUrl url) {
+    if (this->configHandler->isInScope(url))
+        this->webview->setUrl(url);
+    else
+        QMessageBox::warning(this, tr("Invalid URL"), tr("The requested URL is not in the scope of this web application."), QMessageBox::Ok);
+}
+
+void MainWindow::closeEvent(QCloseEvent *) {
+    // This will be called whenever this window is closed.
+    writeSettings();
+}
+
+void MainWindow::initializeUI() {
+    this->ui->setupUi(this);
+    this->webview = new QWebEngineView;
+    this->webview->setPage(new QtWSWebPage(configHandler));
     ui->horizontalLayout->addWidget(webview);
-    if (appSettings->value("site").toString() == "") {
-        webview->setUrl(QUrl(configHandler->getHome()));
-    } else {
-        webview->setUrl(QUrl(appSettings->value("site").toString()));
-    }
-
     if (this->configHandler->canDownload()) {
-        progressBar = new QProgressBar(this);
+        this->progressBar = new QProgressBar(this);
         ui->horizontalLayout->addWidget(progressBar);
-        progressBar->hide();
+        this->progressBar->hide();
     }
 
     webview->settings()->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
     webview->settings()->setAttribute(QWebEngineSettings::JavascriptCanOpenWindows, true);
 
-    setupShortcuts();
-
-    // Window size settings
-    QSettings settings;
-    restoreState(settings.value("mainWindowState").toByteArray());
-
     if (this->configHandler->isMenuDisabled()) {
-        webview->setContextMenuPolicy(Qt::NoContextMenu);
+        this->webview->setContextMenuPolicy(Qt::NoContextMenu);
     } else {
-        webview->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
+        this->webview->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(this->webview, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ShowContextMenu(const QPoint &)));
     }
+}
 
+void MainWindow::initializeWebView() {
     QWebEngineProfile *profile = QWebEngineProfile::defaultProfile();
 
     if (this->configHandler->canDownload()) {
@@ -84,7 +105,9 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
     if (this->configHandler->isAlwaysOnTop()) {
         this->setWindowFlags(Qt::WindowStaysOnTopHint);
     }
+}
 
+void MainWindow::initializeMPRIS() {
 #ifdef DBUS
     if (configHandler->hasMultimedia()) {
         bool ret;
@@ -128,56 +151,26 @@ MainWindow::MainWindow(QWidget *parent, QtWS *configHandler, QApplication *app)
         if (!ret)
             qWarning() << tr("Unregistered Play");
     }
+#else
+    qWarning() << tr("DBUS not available in this system. MPRIS interface not initialized.");
 #endif
-}
-
-MainWindow::~MainWindow() {
-    delete ui;
-#ifdef DBUS
-    const QString interfaceName = tr("it.qtws.") + configHandler->getName();
-
-    QDBusConnection::sessionBus().unregisterService(interfaceName);
-    QDBusConnection::sessionBus().unregisterObject(tr("/"));
-#endif
-}
-
-void MainWindow::gotoUrl(QUrl url) {
-    if (this->configHandler->isInScope(url))
-        this->webview->setUrl(url);
-    else
-        QMessageBox::warning(this, tr("Invalid URL"), tr("The requested URL is not in the scope of this web application."), QMessageBox::Ok);
-}
-
-void MainWindow::closeEvent(QCloseEvent *) {
-    // This will be called whenever this window is closed.
-    writeSettings();
 }
 
 void MainWindow::writeSettings() {
+    this->appSettings->setValue("geometry/mainWindowGeometry", saveGeometry());
+
     if (!this->configHandler->isSaveSession())
         return;
 
     // Write the values to disk in categories.
-    appSettings->setValue("state/mainWindowState", saveState());
-    appSettings->setValue("geometry/mainWindowGeometry", saveGeometry());
-    QString site = webview->url().toString();
-    appSettings->setValue("site", site);
+    this->appSettings->setValue("state/mainWindowState", saveState());
+
+    QString site = this->webview->url().toString();
+    this->appSettings->setValue("site", site);
     qDebug() << " write settings:" << site;
 }
 
-void MainWindow::restore() {
-
-  QByteArray stateData =
-      appSettings->value("state/mainWindowState").toByteArray();
-
-  QByteArray geometryData =
-      appSettings->value("geometry/mainWindowGeometry").toByteArray();
-
-  restoreState(stateData);
-  restoreGeometry(geometryData);
-}
-
-void MainWindow::setupShortcuts() {
+void MainWindow::initializeShortcuts() {
     QShortcut* keyF11 = new QShortcut(this);
     keyF11->setKey(Qt::Key_F11);
     connect(keyF11, SIGNAL(activated()), this, SLOT(actionFullscreen()));
@@ -215,22 +208,34 @@ void MainWindow::setupShortcuts() {
 
 void MainWindow::readSettings() {
     if (!this->appSettings->value(QString("permissions/accepted")).toBool()) {
-        // TODO add dialog for the confirmation
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this,
-                                      "Permissions",
-                                      "Do you grant the following permissions to " + this->configHandler->getName() + "?\n" + this->configHandler->getUserReadablePermissions(),
-                                      QMessageBox::Yes|QMessageBox::No);
-        if (reply == QMessageBox::Yes) {
-            this->appSettings->setValue("permissions/accepted", true);
-        } else {
-            QMessageBox::warning(this, "Error", "This application requires those permissions to work properly. The application will exit.", QMessageBox::Ok);
-            exit(0);
+        if (this->configHandler->getNumberOfPermissions() > 0) {
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this,
+                                          "Permissions",
+                                          "Do you grant the following permissions to " + this->configHandler->getName() + "?\n" + this->configHandler->getUserReadablePermissions(),
+                                          QMessageBox::Yes|QMessageBox::No);
+            if (reply == QMessageBox::Yes) {
+                this->appSettings->setValue("permissions/accepted", true);
+            } else {
+                QMessageBox::warning(this, "Error", "This application requires those permissions to work properly. The application will exit.", QMessageBox::Ok);
+                exit(0);
+            }
         }
     }
 
-    if (this->configHandler->isSaveSession())
-        restore();
+    if (this->configHandler->isSaveSession()) {
+        QByteArray stateData = appSettings->value("state/mainWindowState").toByteArray();
+        restoreState(stateData);
+    }
+
+    QByteArray geometryData = appSettings->value("geometry/mainWindowGeometry").toByteArray();
+    restoreGeometry(geometryData);
+
+    if (this->appSettings->value("site").toString() == "") {
+        this->webview->setUrl(QUrl(this->configHandler->getHome()));
+    } else {
+        this->webview->setUrl(QUrl(this->appSettings->value("site").toString()));
+    }
 }
 
 void MainWindow::fullScreenRequested(QWebEngineFullScreenRequest request) {

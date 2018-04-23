@@ -94,6 +94,10 @@ bool QtWS::hasPermission(QWebEnginePage::Feature permissionId) {
     return false;
 }
 
+int QtWS::getNumberOfPermissions() {
+    return this->permissions.size();
+}
+
 QString QtWS::getUserReadablePermissions() {
     return this->userReadablePermissions.join(QString(", "));
 }

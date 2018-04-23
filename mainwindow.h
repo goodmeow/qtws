@@ -50,7 +50,6 @@ private slots:
 #endif
 
 protected:
-    // save window geometry
     void closeEvent(QCloseEvent *);
 
 private:
@@ -63,12 +62,15 @@ private:
 
     QProgressBar *progressBar;
 
+    void initializeUI();
+    void initializeWebView();
+    void initializeMPRIS();
+    void initializeShortcuts();
+
     void fullScreenRequested(QWebEngineFullScreenRequest request);
+
     void writeSettings();
     void readSettings();
-    void restore();
-
-    void setupShortcuts();
 
     QApplication *app;
 };
