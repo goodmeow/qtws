@@ -3,12 +3,7 @@
 
 A qt webengine program to easily create very basic and lightweight desktop webapps.
 
-Available in the [AUR](https://aur.archlinux.org/packages/qtws-base/), with a bunch of webapps already available:
-- Youtube ([AUR](https://aur.archlinux.org/packages/youtube-desktop/))
-- Google Maps ([AUR](https://aur.archlinux.org/packages/google-maps-desktop/))
-- Google Drive ([AUR](https://aur.archlinux.org/packages/google-drive-desktop/))
-- Google Photos ([AUR](https://aur.archlinux.org/packages/google-photos-desktop/))
-- Netflix ([AUR](https://aur.archlinux.org/packages/netflix-qdesktop/))
+Available in the [AUR](https://aur.archlinux.org/packages/qtws-base/). The official store is available at [mattmezza/qtws-store](https://github.com/mattmezza/qtws-store/).
 
 ## Requirements
 - qt5
