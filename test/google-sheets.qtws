@@ -1,0 +1,9 @@
+{
+        "name": "Google Sheets",
+        "scope": ["https?\:\/\/docs\.google\.com\/spreadsheets(?:\/.*|)", "https?\:\/\/sheets\.google\.com(?:\/.*|)"],
+        "plugins": [],
+        "home": "http://docs.google.com/spreadsheets",
+        "icon": "/usr/share/pixmaps/google-sheets-desktop.svg",
+        "saveSession": false,
+        "download": true
+}

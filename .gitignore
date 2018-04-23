@@ -1,6 +1,5 @@
 *.svg
 *.png
-*.qtws
 Makefile
 *.stash
 qtws
