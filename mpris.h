@@ -122,6 +122,8 @@ private:
     QString currentCover;
     //Song currentSong;
     int pos;
+
+    QString serviceName;
 };
 
 
