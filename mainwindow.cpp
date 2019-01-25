@@ -288,6 +288,11 @@ void MainWindow::ShowContextMenu(const QPoint &pos) {
         for (int i = 0; i < configHandler->getMenu().size(); i++) {
             MenuAction action = configHandler->getMenu().at(i);
 
+            if (action.hasSeparator())
+            {
+                myMenu->addSeparator();
+            }
+
             QAction* menuAction;
             if (action.hasIcon())
                 menuAction = myMenu->addAction(action.getIcon(), action.getTitle());
