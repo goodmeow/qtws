@@ -115,6 +115,9 @@ void QtWS::loadData(QString filename) {
     QJsonDocument jsonDocument = QJsonDocument::fromJson(content.toUtf8());
     QJsonObject jsonObject = jsonDocument.object();
 
+    if(jsonObject.isEmpty())
+        throw QString("Invalid configuration file");
+
     QJsonValue titleInJson = jsonObject.value(QString("name"));
     if (!titleInJson.isString()) {
         throw QString("The title is not a string");
