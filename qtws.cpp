@@ -8,8 +8,6 @@
 #include <QRegExp>
 #include <QStringList>
 
-#include <iostream>
-
 using namespace std;
 
 QtWS::QtWS(QString filename) {
