@@ -115,6 +115,9 @@ void QtWS::loadData(QString filename) {
     QJsonDocument jsonDocument = QJsonDocument::fromJson(content.toUtf8());
     QJsonObject jsonObject = jsonDocument.object();
 
+    if(jsonObject.isEmpty())
+        throw QString("Invalid configuration file");
+
     QJsonValue titleInJson = jsonObject.value(QString("name"));
     if (!titleInJson.isString()) {
         throw QString("The title is not a string");
@@ -288,6 +291,10 @@ void QtWS::loadData(QString filename) {
                     QJsonValue menuItemName     = menuItem.value(QString("title"));
                     QJsonValue menuItemAction   = menuItem.value(QString("action"));
                     QJsonValue menuItemIcon     = menuItem.value(QString("icon"));
+                    QJsonValue menuSeparator    = menuItem.value(QString("separator"));
+
+                    if(menuSeparator.isUndefined())
+                        menuSeparator = QJsonValue(false);
 
                     if (!menuItemName.isString()) {
                         throw QString("Menu item does not have a title");
@@ -295,12 +302,14 @@ void QtWS::loadData(QString filename) {
                         throw QString("Menu item does not have an action");
                     } else if (!menuItemIcon.isString() && !menuItemIcon.isUndefined()) {
                         throw QString("Menu item does not have a string icon name");
+                    } else if (!menuSeparator.isBool()) {
+                        throw QString("Menu separator is not bool");
                     } else {
                         if (menuItemIcon.isUndefined()) {
-                            MenuAction action(menuItemName.toString(), menuItemAction.toString());
+                            MenuAction action(menuItemName.toString(), menuItemAction.toString(), menuSeparator.toBool());
                             this->menu.append(action);
                         } else {
-                            MenuAction action(menuItemName.toString(), menuItemAction.toString(), menuItemIcon.toString());
+                            MenuAction action(menuItemName.toString(), menuItemAction.toString(), menuItemIcon.toString(), menuSeparator.toBool());
                             this->menu.append(action);
                         }
                     }
