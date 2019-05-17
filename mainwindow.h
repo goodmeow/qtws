@@ -51,7 +51,7 @@ private slots:
 
 protected:
     // save window geometry
-    void closeEvent(QCloseEvent *);
+    void closeEvent(QCloseEvent* event);
 
 private:
     Ui::MainWindow *ui;

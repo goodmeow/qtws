@@ -14,6 +14,7 @@
 #include <QFileDialog>
 #include <QWebEngineProfile>
 #include <QProgressBar>
+#include <QCloseEvent>
 #include <QIcon>
 #include "menuaction.h"
 #include "qtwswebpage.h"
@@ -171,9 +172,15 @@ void MainWindow::gotoUrl(QUrl url) {
         QMessageBox::warning(this, tr("Invalid URL"), tr("The requested URL is not in the scope of this web application."), QMessageBox::Ok);
 }
 
-void MainWindow::closeEvent(QCloseEvent *) {
+void MainWindow::closeEvent(QCloseEvent *event) {
     // This will be called whenever this window is closed.
     writeSettings();
+    
+    delete this->webview->page();
+    delete this->webview;
+    
+    event->accept();
+    delete ui;
 }
 
 void MainWindow::writeSettings() {
