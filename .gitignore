@@ -1,7 +1,7 @@
 *.svg
 *.png
-*.qtws
 Makefile
 *.stash
 qtws
 *.pro.user
+build

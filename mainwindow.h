@@ -22,7 +22,7 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL);
+    explicit MainWindow(QWidget *parent = 0, QtWS *config = NULL, QApplication *app = NULL);
     ~MainWindow();
 
     void gotoUrl(QUrl);
@@ -69,10 +69,17 @@ private:
 
     QProgressBar *progressBar;
 
+    void initializeUI();
+    void initializeWebView();
+    void initializeMPRIS();
+    void initializeShortcuts();
+
     void fullScreenRequested(QWebEngineFullScreenRequest request);
+
     void writeSettings();
     void readSettings();
-    void restore();
+
+    QApplication *app;
 };
 
 #endif // MAINWINDOW_H

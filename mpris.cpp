@@ -9,60 +9,57 @@ static inline qlonglong convertTime(int t) {
 
 Mpris::Mpris(QObject *p, QString name)
     : QObject(p), pos(-1) {
+
+    this->serviceName = name;
+
     QDBusConnection::sessionBus().registerService("org.mpris.MediaPlayer2." + name.toLatin1());
+
+    QDBusConnection::sessionBus().unregisterService("org.mpris.MediaPlayer2." + name.toLatin1());
 
 
 //    QDBusConnection::connectToBus()
 //    QDBusConnection::sessionBus().registerObject("/org/mpris/MediaPlayer2", this, QDBusConnection::ExportAdaptors);
 }
 
-Mpris::~Mpris()
-{
-    QDBusConnection::sessionBus().unregisterService("org.mpris.MediaPlayer2.cantata");
+Mpris::~Mpris() {
+    QDBusConnection::sessionBus().unregisterService("org.mpris.MediaPlayer2." + this->serviceName.toLatin1());
 }
 
-void Mpris::Pause()
-{
+void Mpris::Pause() {
     qDebug()<<"pause";
 
 }
 
-void Mpris::Play()
-{
+void Mpris::Play() {
     qDebug()<<"play";
 }
 
-QString Mpris::PlaybackStatus() const
-{
+QString Mpris::PlaybackStatus() const {
     qDebug()<<"PlaybackStatus";
     return "PlaybackStatus";
 }
 
-qlonglong Mpris::Position() const
-{
+qlonglong Mpris::Position() const {
     // Cant use MPDStatus, as we dont poll for track position, but use a timer instead!
     //return MPDStatus::self()->timeElapsed();
     return 1000000000;
 }
 
-void Mpris::updateStatus()
-{
+void Mpris::updateStatus() {
     QVariantMap map;
     qDebug()<<"updateStatus";
 
 
 }
 
-void Mpris::updateCurrentCover(const QString &fileName)
-{
+void Mpris::updateCurrentCover(const QString &fileName) {
     if (fileName!=currentCover) {
         currentCover=fileName;
         signalUpdate("Metadata", Metadata());
     }
 }
 
-void Mpris::updateCurrentSong()
-{
+void Mpris::updateCurrentSong() {
     qDebug()<<"updateCurrentSong";
 
 }
@@ -73,20 +70,17 @@ QVariantMap Mpris::Metadata() const {
     return metadataMap;
 }
 
-void Mpris::Raise()
-{
+void Mpris::Raise() {
     emit showMainWindow();
 }
 
-void Mpris::signalUpdate(const QString &property, const QVariant &value)
-{
+void Mpris::signalUpdate(const QString &property, const QVariant &value) {
     QVariantMap map;
     map.insert(property, value);
     signalUpdate(map);
 }
 
-void Mpris::signalUpdate(const QVariantMap &map)
-{
+void Mpris::signalUpdate(const QVariantMap &map) {
     if (map.isEmpty()) {
         return;
     }

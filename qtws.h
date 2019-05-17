@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QList>
+#include <QStringList>
+#include <QWebEnginePage>
 #include "menuaction.h"
 
 class QtWS {
@@ -23,9 +25,16 @@ public:
     QString getConfigName();
 
     bool isSaveSession();
+    bool isAlwaysOnTop();
     bool isMenuDisabled();
     bool hasMultimedia();
     bool canDownload();
+    int getCacheMB();
+
+    bool hasPermission(QWebEnginePage::Feature);
+    int getNumberOfPermissions();
+
+    QString getUserReadablePermissions();
 
 private:
     QString name;
@@ -34,9 +43,14 @@ private:
     QString home;
     QString iconPath;
     bool saveSession;
+    bool alwaysOnTop;
     bool menuDisabled;
     bool multimedia;
     bool download;
+    int cacheMB;
+
+    QList<int> permissions;
+    QStringList userReadablePermissions;
 
     QList<MenuAction> menu;
 

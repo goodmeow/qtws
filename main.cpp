@@ -6,24 +6,26 @@
 #include <iostream>
 #include <QIcon>
 #include <QUrl>
+#include <QFileDialog>
 #include "qtws.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    //app.setWindowIcon(QIcon(QLatin1String("netflix-desktop")));
 
+    QString filename;
     if (argc < 2) {
-        qWarning() << "Specify the configuration file";
-        return -1;
+        filename = QFileDialog::getOpenFileName(nullptr, QString("Open configuration file"), QString(), QString("*.qtws|*.json"));
+        if (filename.length() == 0)
+            return -1;
+    } else {
+        filename = QString(argv[1]);
     }
 
-    char* urlToOpen = nullptr;
-
     try {
-        QtWS *configHandler = new QtWS(argv[1]);
+        QtWS *configHandler = new QtWS(filename);
 
         app.setWindowIcon(QIcon(configHandler->getIconPath()));
-        MainWindow* w = new MainWindow(NULL, configHandler);
+        MainWindow* w = new MainWindow(NULL, configHandler, &app);
         w->show();
 
         if (argc == 3) {

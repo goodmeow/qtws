@@ -1,16 +1,14 @@
 {
-        "name": "Google Drive",
-        "scope": ["https?\:\/\/.*\.google\.com\/drive(?:\/.*|)", "https?\:\/\/drive\.google\.com(?:\/.*|)"],
+        "name": "Youtube",
+        "scope": ["https?\:\/\/(?:[^.]*\.|)youtube\.com(?:\/.*|)", "https?\:\/\/youtu\.be(?:\/.*|)"],
         "plugins": [],
-        "home": "http://drive.google.com",
-        "icon": "/home/simone/Workspace/QtProjects/qtws/data/YouTube.svg",
+        "home": "http://youtube.com",
+        "icon": "/usr/share/pixmaps/youtube-desktop.svg",
         "saveSession": false,
-        "menuDisabled": false,
         "multimedia": true,
-        "download": true,
         "menu": [
             {
-                "title": "Trendingsssssss",
+                "title": "Trending",
                 "action": "http://youtube.com/feed/trending"
             },
             {
@@ -23,11 +21,7 @@
             },
             {
                 "title": "Playlist",
-                "action": "http://youtube.com/playlist"
-            },
-            {
-                "title": "Trending",
-                "action": "http://youtube.com/feed/trending"
+                "action": "http://youtube.com/playlist?list=WL"
             },
             {
                 "title": "Settings",

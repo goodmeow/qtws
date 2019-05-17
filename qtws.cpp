@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QDebug>
 #include <QRegExp>
+#include <QStringList>
 
 using namespace std;
 
@@ -13,6 +14,9 @@ QtWS::QtWS(QString filename) {
     this->multimedia    = false;
     this->menuDisabled  = false;
     this->download      = false;
+    this->alwaysOnTop   = false;
+    this->cacheMB       = 50;
+    this->permissions.clear();
 
     this->loadData(filename);
 }
@@ -60,6 +64,10 @@ QString QtWS::getName() {
     return name;
 }
 
+bool QtWS::isAlwaysOnTop() {
+    return this->alwaysOnTop;
+}
+
 bool QtWS::isMenuDisabled() {
     return this->menuDisabled;
 }
@@ -70,6 +78,28 @@ bool QtWS::hasMultimedia() {
 
 bool QtWS::canDownload() {
     return this->download;
+}
+
+int QtWS::getCacheMB() {
+    return this->cacheMB;
+}
+
+bool QtWS::hasPermission(QWebEnginePage::Feature permissionId) {
+    for (int i = 0; i < this->permissions.size(); i++) {
+        if (this->permissions.at(i) == (int)permissionId) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+int QtWS::getNumberOfPermissions() {
+    return this->permissions.size();
+}
+
+QString QtWS::getUserReadablePermissions() {
+    return this->userReadablePermissions.join(QString(", "));
 }
 
 
@@ -85,10 +115,15 @@ void QtWS::loadData(QString filename) {
     QJsonDocument jsonDocument = QJsonDocument::fromJson(content.toUtf8());
     QJsonObject jsonObject = jsonDocument.object();
 
+    if(jsonObject.isEmpty())
+        throw QString("Invalid configuration file");
+
     QJsonValue titleInJson = jsonObject.value(QString("name"));
     if (!titleInJson.isString()) {
         throw QString("The title is not a string");
     } else {
+        if (this->name.contains(QString("/")) || this->name.contains("\\"))
+            throw QString("Illegal name " + this->name + ": it cannot contain slashes or backslashes.");
         this->name = titleInJson.toString();
     }
 
@@ -137,7 +172,7 @@ void QtWS::loadData(QString filename) {
     }
 
     QJsonValue iconInJson = jsonObject.value(QString("icon"));
-    if (!titleInJson.isString()) {
+    if (!iconInJson.isString()) {
         throw QString("The icon is not a string");
         return;
     } else {
@@ -149,6 +184,23 @@ void QtWS::loadData(QString filename) {
         throw QString("Save session is not boolean");
     } else {
         this->saveSession = sessionInJson.toBool();
+    }
+
+    QJsonValue cacheInJson = jsonObject.value(QString("cacheMB"));
+    if (!cacheInJson.isUndefined()) {
+        if (!cacheInJson.isDouble()) {
+            throw QString("The cache is not a number");
+            return;
+        } else {
+            this->cacheMB = iconInJson.toInt(50);
+        }
+    }
+
+    QJsonValue alwaysOnTopVal = jsonObject.value(QString("alwaysOnTop"));
+    if (!alwaysOnTopVal.isBool()) {
+        this->alwaysOnTop = false;
+    } else {
+        this->alwaysOnTop = alwaysOnTopVal.toBool();
     }
 
     QJsonValue menuDisabledJson = jsonObject.value(QString("menuDisabled"));
@@ -178,6 +230,51 @@ void QtWS::loadData(QString filename) {
         }
     }
 
+    QJsonValue permissionsInJson = jsonObject.value(QString("permissions"));
+    if (!permissionsInJson.isUndefined()) {
+        this->permissions.clear();
+        if (!permissionsInJson.isArray()) {
+            throw QString("Permissions is not an array");
+        } else {
+            QJsonArray permissionsArray = permissionsInJson.toArray();
+            for (int i = 0; i < permissionsArray.size(); i++) {
+                QJsonValue permissionItem = permissionsArray.at(i);
+                if (!permissionItem.isString()) {
+                    throw QString("All the permissions have to be strings");
+                }
+
+                QString permissionRequested = permissionItem.toString();
+
+                if      (permissionRequested == QString("Notifications")) {
+                    this->permissions.append(0);
+                    this->userReadablePermissions.append(QString("Notifications"));
+                } else if (permissionRequested == QString("Geolocation")) {
+                    this->permissions.append(1);
+                    this->userReadablePermissions.append(QString("Geolocation"));
+                } else if (permissionRequested == QString("MediaAudioCapture")) {
+                    this->permissions.append(2);
+                    this->userReadablePermissions.append(QString("Microphone"));
+                } else if (permissionRequested == QString("MediaVideoCapture")) {
+                    this->permissions.append(3);
+                    this->userReadablePermissions.append(QString("Camera"));
+                } else if (permissionRequested == QString("MediaAudioVideoCapture")) {
+                    this->permissions.append(4);
+                    this->userReadablePermissions.append(QString("Microphone+Camera"));
+                } else if (permissionRequested == QString("MouseLock")) {
+                    this->permissions.append(5);
+                    this->userReadablePermissions.append(QString("Mouse lock"));
+                } else if (permissionRequested == QString("DesktopVideoCapture")) {
+                    this->permissions.append(6);
+                    this->userReadablePermissions.append(QString("Desktop video capture"));
+                } else if (permissionRequested == QString("DesktopAudioVideoCapture")) {
+                    this->permissions.append(7);
+                    this->userReadablePermissions.append(QString("Desktop video+audio capture"));
+                } else
+                    throw QString("Invalid permission \"") + permissionRequested + QString("\"");
+            }
+        }
+    }
+
     QJsonValue menuInJson = jsonObject.value(QString("menu"));
     if (!menuInJson.isUndefined()) {
         this->menu.clear();
@@ -194,6 +291,10 @@ void QtWS::loadData(QString filename) {
                     QJsonValue menuItemName     = menuItem.value(QString("title"));
                     QJsonValue menuItemAction   = menuItem.value(QString("action"));
                     QJsonValue menuItemIcon     = menuItem.value(QString("icon"));
+                    QJsonValue menuSeparator    = menuItem.value(QString("separator"));
+
+                    if(menuSeparator.isUndefined())
+                        menuSeparator = QJsonValue(false);
 
                     if (!menuItemName.isString()) {
                         throw QString("Menu item does not have a title");
@@ -201,12 +302,14 @@ void QtWS::loadData(QString filename) {
                         throw QString("Menu item does not have an action");
                     } else if (!menuItemIcon.isString() && !menuItemIcon.isUndefined()) {
                         throw QString("Menu item does not have a string icon name");
+                    } else if (!menuSeparator.isBool()) {
+                        throw QString("Menu separator is not bool");
                     } else {
                         if (menuItemIcon.isUndefined()) {
-                            MenuAction action(menuItemName.toString(), menuItemAction.toString());
+                            MenuAction action(menuItemName.toString(), menuItemAction.toString(), menuSeparator.toBool());
                             this->menu.append(action);
                         } else {
-                            MenuAction action(menuItemName.toString(), menuItemAction.toString(), menuItemIcon.toString());
+                            MenuAction action(menuItemName.toString(), menuItemAction.toString(), menuItemIcon.toString(), menuSeparator.toBool());
                             this->menu.append(action);
                         }
                     }
